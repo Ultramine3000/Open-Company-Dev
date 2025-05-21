@@ -5234,7 +5234,7 @@ bones/67/rotation = Quaternion(2.75904e-08, -1.09256e-07, 1.16415e-08, 1)
 bones/67/scale = Vector3(1, 1, 1)
 
 [node name="german_helmet" type="BoneAttachment3D" parent="Infantry/Armature/Skeleton3D"]
-transform = Transform3D(15.6246, -2.89896, 5.29877, 3.01596, 21.781, -2.30055, -4.8611, 4.19569, 15.604, -18.7449, 19.2691, -339.706)
+transform = Transform3D(15.6246, -2.89896, 5.29877, 3.01596, 21.781, -2.30055, -4.8611, 4.19569, 15.604, -18.7449, 19.269, -339.706)
 bone_name = "german_helmet"
 bone_idx = 7
 
@@ -5244,7 +5244,7 @@ mesh = SubResource("ArrayMesh_uojri")
 skeleton = NodePath("")
 
 [node name="french_rifle" type="BoneAttachment3D" parent="Infantry/Armature/Skeleton3D"]
-transform = Transform3D(2.79561, -0.0543976, -21.2056, 21.2057, 0.0357664, 2.79552, 0.0283528, -21.3891, 0.0586057, -26.7282, 28.1899, -280.975)
+transform = Transform3D(2.79561, -0.0543971, -21.2057, 21.2057, 0.0357645, 2.79552, 0.0283524, -21.3891, 0.0586057, -26.7282, 28.1899, -280.975)
 bone_name = "french_rifle"
 bone_idx = 56
 
@@ -5253,7 +5253,7 @@ mesh = SubResource("ArrayMesh_3dgo7")
 skeleton = NodePath("")
 
 [node name="german_rifle" type="BoneAttachment3D" parent="Infantry/Armature/Skeleton3D"]
-transform = Transform3D(-9.56064, -1.39792, -0.0132036, 1.3973, -9.55843, 0.210133, -0.0434638, 0.206011, 9.66003, -14.7403, 81.5263, -277.882)
+transform = Transform3D(-9.56064, -1.39792, -0.013204, 1.3973, -9.55843, 0.210134, -0.0434637, 0.206011, 9.66002, -14.7403, 81.5263, -277.882)
 bone_name = "german_rifle"
 bone_idx = 57
 

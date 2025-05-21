@@ -26,11 +26,21 @@ var is_selected: bool = false:
 				if ring:
 					ring.visible = value
 
+# Store formation basis - updated when move commands are issued
+var formation_forward: Vector3
+var formation_right: Vector3
+var last_movement_rotation: float = 0.0
+
 func _ready():
 	if anim_player:
 		anim_player.play("Idle_1")
 	if selection_ring:
 		selection_ring.visible = false
+
+	# Initialize formation orientation vectors
+	formation_forward = -global_transform.basis.z.normalized()
+	formation_right = global_transform.basis.x.normalized()
+	last_movement_rotation = rotation.y
 
 	if stats:
 		_spawn_infantry_clones(stats.squad_size)
@@ -117,8 +127,8 @@ func _physics_process(delta):
 		if anim_player.current_animation != "Move":
 			anim_player.play("Move")
 	else:
-		# Handle turning toward the enemy if we're in combat and not moving
-		if enemy_in_range and current_enemy and is_instance_valid(current_enemy):
+		# Allow leader to rotate toward enemy during combat
+		if enemy_in_range and current_enemy and is_instance_valid(current_enemy) and not is_moving:
 			var direction_to_enemy = current_enemy.global_transform.origin - global_transform.origin
 			direction_to_enemy.y = 0  # Keep on the same plane
 			
@@ -173,12 +183,19 @@ func _process_clone_movement(delta):
 	# Check if we're currently moving
 	var is_moving = not nav_agent.is_navigation_finished()
 	
+	# If moving, check if formation orientation needs updating
+	if is_moving and abs(rotation.y - last_movement_rotation) > 0.1:
+		# Leader has rotated significantly during movement, update formation orientation
+		formation_forward = -global_transform.basis.z.normalized()
+		formation_right = global_transform.basis.x.normalized()
+		last_movement_rotation = rotation.y
+	
 	for clone in valid_clones:
 		var clone_anim_player = clone.get_node_or_null("AnimationPlayer")
 		var offset: Vector3 = clone.get_meta("formation_offset")
-		var forward = -global_transform.basis.z.normalized()
-		var right = global_transform.basis.x.normalized()
-		var target_pos = global_transform.origin + right * offset.x + forward * offset.z
+		
+		# Use the formation vectors that update during movement but stay fixed during combat
+		var target_pos = global_transform.origin + formation_right * offset.x + formation_forward * offset.z
 		var move_vec = target_pos - clone.global_transform.origin
 		move_vec.y = 0
 		var distance = move_vec.length()
@@ -191,8 +208,17 @@ func _process_clone_movement(delta):
 			if clone_anim_player and clone_anim_player.current_animation != "Move":
 				clone_anim_player.play("Move")
 		
-		# If we're in combat and not moving, make clones face the enemy
+			# Move toward formation target
+			clone.global_translate(move_vec.normalized() * stats.move_speed * 0.9 * delta)
+			
+			# Set rotation to match movement direction
+			if move_vec.length() > 0.1:
+				var target_rot = atan2(move_vec.x, move_vec.z)
+				var current_rot = clone.rotation.y
+				clone.rotation.y = lerp_angle(current_rot, target_rot, delta * 5.0)
+				
 		elif enemy_in_range and current_enemy and is_instance_valid(current_enemy):
+			# COMBAT MODE: Only rotate to face enemy, but maintain formation position
 			var direction_to_enemy = current_enemy.global_transform.origin - clone.global_transform.origin
 			direction_to_enemy.y = 0
 			
@@ -203,16 +229,26 @@ func _process_clone_movement(delta):
 				# Keep in combat stance while enemy in range
 				if clone_anim_player and clone_anim_player.current_animation != "Aim" and clone_anim_player.current_animation != "Fire":
 					clone_anim_player.play("Aim")
+			
+			# CRITICAL: Continue with normal formation positioning, but don't adjust rotations
+			# This way clones will maintain formation position but still face enemies
+			
+			# Dead zone to stop jitter - applied during combat too
+			if distance < 0.05:
+				var pos = clone.global_transform.origin
+				pos.y = global_transform.origin.y + 0.001
+				clone.global_transform.origin = pos
+				continue
 				
-			# Skip further movement logic if in combat and not moving
-			continue
+			# Move toward formation position while still facing enemy
+			clone.global_translate(move_vec.normalized() * stats.move_speed * 0.5 * delta)
 		else:
 			# Return to idle if not moving and not in combat
 			if clone_anim_player and clone_anim_player.current_animation != "Idle_1":
 				clone_anim_player.play("Idle_1")
 		
-		# Dead zone to stop jitter
-		if distance < 0.05:
+		# Dead zone to stop jitter - ONLY apply this when not in combat
+		if distance < 0.05 and not enemy_in_range:
 			var pos = clone.global_transform.origin
 			pos.y = global_transform.origin.y + 0.001
 			clone.global_transform.origin = pos
@@ -221,9 +257,6 @@ func _process_clone_movement(delta):
 			if clone_anim_player and clone_anim_player.current_animation != "Idle_1" and not is_attacking and not is_moving:
 				clone_anim_player.play("Idle_1")
 			continue
-
-		var direction = move_vec.normalized()
-		var speed = stats.move_speed * 0.9
 
 		# ⛔ Avoid getting too close to the leader
 		var to_leader = clone.global_transform.origin - global_transform.origin
@@ -246,23 +279,10 @@ func _process_clone_movement(delta):
 				var push_strength = (1.2 - dist)
 				clone.global_translate(push_dir * push_strength * delta * 3.5)
 
-		# ✅ Move toward formation target
-		clone.global_translate(direction * speed * delta)
-
 		# Set correct height
 		var new_pos = clone.global_transform.origin
 		new_pos.y = global_transform.origin.y + 0.1
 		clone.global_transform.origin = new_pos
-
-		# ✅ Rotate
-		if direction.length() > 0.1:
-			var target_rot = atan2(direction.x, direction.z)
-			var current_rot = clone.rotation.y
-			clone.rotation.y = lerp_angle(current_rot, target_rot, delta * 5.0)
-
-		# ✅ Animate - reusing the already defined clone_anim_player variable
-		if clone_anim_player and not is_attacking and clone_anim_player.current_animation != "Move" and distance > 0.05:
-			clone_anim_player.play("Move")
 
 func move_to_position(pos: Vector3):
 	if nav_agent:
@@ -272,6 +292,19 @@ func move_to_position(pos: Vector3):
 		attack_timer = 0.0
 		if is_attacking:
 			is_attacking = false
+		
+		# Update formation orientation when movement starts
+		# This allows the formation to rotate as a whole to face the new direction
+		var direction = (pos - global_transform.origin).normalized()
+		if direction.length() > 0.1:
+			var target_rotation = atan2(direction.x, direction.z)
+			
+			# Calculate new formation orientation vectors based on target direction
+			# We do this immediately so the formation updates its orientation at the start of movement
+			var angle_change = target_rotation - rotation.y
+			formation_forward = Vector3(sin(target_rotation), 0, cos(target_rotation)).normalized()
+			formation_right = Vector3(cos(target_rotation), 0, -sin(target_rotation)).normalized()
+			last_movement_rotation = target_rotation
 			
 		# Switch to movement animation
 		if anim_player and anim_player.current_animation != "Move":
@@ -336,6 +369,17 @@ func _perform_attack():
 		is_attacking = false
 		return
 		
+	is_attacking = true
+
+	# Allow leader to rotate during attack like during normal combat
+	if is_instance_valid(current_enemy):
+		var direction_to_enemy = current_enemy.global_transform.origin - global_transform.origin
+		direction_to_enemy.y = 0  # Keep on the same plane
+		
+		if direction_to_enemy.length() > 0.1:
+			var target_rotation = atan2(direction_to_enemy.x, direction_to_enemy.z)
+			rotation.y = lerp_angle(rotation.y, target_rotation, 0.5)  # Quick rotation for attack
+
 	is_attacking = true
 
 	# Aim anims
