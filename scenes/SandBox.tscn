@@ -1,0 +1,83 @@
+[gd_scene load_steps=14 format=3 uid="uid://e15251a4dgtl"]
+
+[ext_resource type="PackedScene" uid="uid://dnw2cubtetdj" path="res://scenes/CameraRig.tscn" id="1_15ed5"]
+[ext_resource type="PackedScene" uid="uid://53ikbm0hxshl" path="res://scenes/SelectionManager.tscn" id="2_q8osp"]
+[ext_resource type="PackedScene" uid="uid://dsw1mjuyehgry" path="res://scenes/Gren_Sqaud.tscn" id="3_e724j"]
+[ext_resource type="Script" uid="uid://c1wddsm427l3n" path="res://core/scripts/CombatUnitData.gd" id="4_h66ac"]
+[ext_resource type="Texture2D" uid="uid://b8y4mg8rb8ymf" path="res://data/assets/icons/Infantry.png" id="5_tu0pt"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_15ed5"]
+sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+ground_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+
+[sub_resource type="Sky" id="Sky_q8osp"]
+sky_material = SubResource("ProceduralSkyMaterial_15ed5")
+
+[sub_resource type="Environment" id="Environment_e724j"]
+background_mode = 2
+sky = SubResource("Sky_q8osp")
+tonemap_mode = 2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q8osp"]
+albedo_color = Color(0.264774, 0.264774, 2.88785e-07, 1)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_e724j"]
+material = SubResource("StandardMaterial3D_q8osp")
+size = Vector2(200, 200)
+
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_h66ac"]
+points = PackedVector3Array(101.567, 1.58699, 101.567, -101.567, -1.58699, -101.567, -101.567, 1.58699, -101.567, 101.567, -1.58699, -101.567, -101.567, -1.58699, 101.567, -101.567, 1.58699, 101.567, 101.567, 1.58699, -101.567, 101.567, -1.58699, 101.567)
+
+[sub_resource type="NavigationMesh" id="NavigationMesh_h66ac"]
+vertices = PackedVector3Array(-14.6771, 2.25256, -14.7642, -14.6771, 2.25256, 15.4858, 15.3229, 2.25256, 15.4858, 15.3229, 2.25256, -14.7642)
+polygons = [PackedInt32Array(3, 2, 0), PackedInt32Array(0, 2, 1)]
+
+[sub_resource type="Resource" id="Resource_tu0pt"]
+script = ExtResource("4_h66ac")
+unit_icon = ExtResource("5_tu0pt")
+unit_name = ""
+health = 1
+move_speed = 7.0
+cost = 0
+weapon_type = ""
+abilities = Array[String]([])
+squad_size = 4
+metadata/_custom_type_script = "uid://c1wddsm427l3n"
+
+[node name="Node3D" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_e724j")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, 0.75, -0.433013, 0, 0, 0)
+light_energy = 0.192
+shadow_enabled = true
+
+[node name="TestGround" type="StaticBody3D" parent="."]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="TestGround"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.22385, 0)
+mesh = SubResource("PlaneMesh_e724j")
+skeleton = NodePath("../..")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="TestGround"]
+shape = SubResource("ConvexPolygonShape3D_h66ac")
+
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="TestGround"]
+navigation_mesh = SubResource("NavigationMesh_h66ac")
+
+[node name="CSGBox3D" type="CSGBox3D" parent="TestGround/NavigationRegion3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.320404, 0.890988, 0.307074)
+visible = false
+size = Vector3(30.9951, 1.77686, 31.1426)
+
+[node name="CameraRig" parent="." instance=ExtResource("1_15ed5")]
+
+[node name="SelectionManager" parent="." instance=ExtResource("2_q8osp")]
+
+[node name="Rifle_Sqaud" parent="." instance=ExtResource("3_e724j")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.19943, 0)
+stats = SubResource("Resource_tu0pt")
+
+[node name="CloneContainer" type="Node3D" parent="."]
