@@ -22,11 +22,12 @@ Install Godot 4.3+
 
 Clone the repo:
 
-bash
+```bash
 Copy
 Edit
 git clone https://github.com/yourusername/doctrine.git
 cd doctrine
+```
 Open the project in Godot (godot .)
 
 Run scenes/SandBox.tscn to test camera movement, selection, and infantry orders.
