@@ -1,10 +1,9 @@
-[gd_scene load_steps=14 format=3 uid="uid://e15251a4dgtl"]
+[gd_scene load_steps=12 format=3 uid="uid://e15251a4dgtl"]
 
 [ext_resource type="PackedScene" uid="uid://dnw2cubtetdj" path="res://scenes/CameraRig.tscn" id="1_15ed5"]
 [ext_resource type="PackedScene" uid="uid://53ikbm0hxshl" path="res://scenes/SelectionManager.tscn" id="2_q8osp"]
 [ext_resource type="PackedScene" uid="uid://dsw1mjuyehgry" path="res://scenes/Gren_Sqaud.tscn" id="3_e724j"]
-[ext_resource type="Script" uid="uid://c1wddsm427l3n" path="res://core/scripts/CombatUnitData.gd" id="4_h66ac"]
-[ext_resource type="Texture2D" uid="uid://b8y4mg8rb8ymf" path="res://data/assets/icons/Infantry.png" id="5_tu0pt"]
+[ext_resource type="PackedScene" uid="uid://2ewvedxxwgyp" path="res://scenes/Fantasins_sqaud.tscn" id="4_h66ac"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_15ed5"]
 sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
@@ -31,18 +30,6 @@ points = PackedVector3Array(101.567, 1.58699, 101.567, -101.567, -1.58699, -101.
 [sub_resource type="NavigationMesh" id="NavigationMesh_h66ac"]
 vertices = PackedVector3Array(-14.6771, 2.25256, -14.7642, -14.6771, 2.25256, 15.4858, 15.3229, 2.25256, 15.4858, 15.3229, 2.25256, -14.7642)
 polygons = [PackedInt32Array(3, 2, 0), PackedInt32Array(0, 2, 1)]
-
-[sub_resource type="Resource" id="Resource_tu0pt"]
-script = ExtResource("4_h66ac")
-unit_icon = ExtResource("5_tu0pt")
-unit_name = ""
-health = 1
-move_speed = 7.0
-cost = 0
-weapon_type = ""
-abilities = Array[String]([])
-squad_size = 4
-metadata/_custom_type_script = "uid://c1wddsm427l3n"
 
 [node name="Node3D" type="Node3D"]
 
@@ -76,8 +63,10 @@ size = Vector3(30.9951, 1.77686, 31.1426)
 
 [node name="SelectionManager" parent="." instance=ExtResource("2_q8osp")]
 
-[node name="Rifle_Sqaud" parent="." instance=ExtResource("3_e724j")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.19943, 0)
-stats = SubResource("Resource_tu0pt")
-
 [node name="CloneContainer" type="Node3D" parent="."]
+
+[node name="Gren_Sqaud" parent="." instance=ExtResource("3_e724j")]
+transform = Transform3D(-0.052702, 0, 0.99861, 0, 1, 0, -0.99861, 0, -0.052702, -12.0012, 2.23425, -10.2049)
+
+[node name="Fantasins_Sqaud" parent="." instance=ExtResource("4_h66ac")]
+transform = Transform3D(-0.0239088, 0, -0.999714, 0, 1, 0, 0.999714, 0, -0.0239088, 11.4484, 2.22364, 11.4031)

@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b8y4mg8rb8ymf"
-path.s3tc="res://.godot/imported/Infantry.png-ce73822c5703f4a3b0308d8d922e9408.s3tc.ctex"
+uid="uid://dqobwqo60y8rr"
+path.s3tc="res://.godot/imported/fire_01.png-65b7cabeab1d8ee5be2b0d16ecd15561.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://data/assets/icons/Infantry.png"
-dest_files=["res://.godot/imported/Infantry.png-ce73822c5703f4a3b0308d8d922e9408.s3tc.ctex"]
+source_file="res://data/assets/textures/fire_01.png"
+dest_files=["res://.godot/imported/fire_01.png-65b7cabeab1d8ee5be2b0d16ecd15561.s3tc.ctex"]
 
 [params]
 

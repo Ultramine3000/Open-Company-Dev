@@ -14,10 +14,6 @@ config/name="Doctrine: Open Platoon Strategy"
 config/features=PackedStringArray("4.4", "GL Compatibility")
 config/icon="res://icon.svg"
 
-[global_group]
-
-Infantry=""
-
 [rendering]
 
 renderer/rendering_method="gl_compatibility"
