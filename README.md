@@ -1,46 +1,68 @@
-# Doctrine: Open Platoon Strategy
+# 🪖 Doctrine: Open Platoon Strategy
 
-**Doctrine: Open Platoon Strategy** is a free, open-source real-time tactics game inspired by *Company of Heroes*. Built using **Godot 4.3**, it offers a fully moddable framework for creating dynamic RTS scenarios with customizable factions, squads, and battlefield logic.
+**Doctrine: Open Platoon Strategy** is a free and open-source real-time tactics game, inspired by the intensity and depth of *Company of Heroes*. Powered by **Godot 4.3**, Doctrine provides a fully moddable framework for creating dynamic battlefield experiences with custom factions, squad behaviors, and terrain-aware tactics.
 
-> **📄 Full Developer Documentation:**  
-> [View here on Google Docs](https://docs.google.com/document/d/1SwRlM_GhbNZIEyF8fDz9QOazDvM4ad_Nv64w7ouSOMM/edit?usp=sharing)
+Whether you're a developer, modder, or just a fan of RTS combat — this project is made for exploration, learning, and expansion.
 
----
-
-## 🎮 Features
-
-- 🎖️ **Tactical Platoon-Level Combat** — Focus on infantry tactics with data-driven unit definitions.
-- 🧩 **Modular Game Design** — Easily extend or override units, buildings, and abilities via `.tres` files.
-- 🎥 **Smooth RTS Camera** — Middle-mouse drag to pan, scroll to zoom, and survey the battlefield in style.
-- 🖱️ **Click & Command Interface** — Left-click to select, right-click to issue movement orders.
-- 🛠️ **Plug-in Modding System** — Built-in support for user mods with no need to modify core files.
+> 📘 **Full Developer Documentation:**  
+> [📄 View the complete design doc on Google Docs](https://docs.google.com/document/d/1SwRlM_GhbNZIEyF8fDz9QOazDvM4ad_Nv64w7ouSOMM/edit?usp=sharing)
 
 ---
 
-## 🚀 How to Play
-Install Godot 4.3+
+## 🎮 Core Features
 
-Clone the repo:
+- 🎖️ **Platoon-Level Tactical Combat**  
+  Command squads of infantry with formation logic, movement cohesion, and clear visibility controls.
 
-```bash
-Copy
-Edit
-git clone https://github.com/yourusername/doctrine.git
-cd doctrine
-```
-Open the project in Godot (godot .)
+- 🧩 **Modular Game Architecture**  
+  Add or override any unit, faction, ability, or structure via Godot's resource system (`.tres`).
 
-Run scenes/SandBox.tscn to test camera movement, selection, and infantry orders.
+- 🎥 **Polished RTS Camera Controls**  
+  Smooth zooming and drag-to-pan give you intuitive command of the battlefield.
+
+- 🖱️ **Point-and-Click Squad Orders**  
+  Select units with a click, issue contextual move orders with visual feedback.
+
+- 🛠️ **Plug-and-Play Modding System**  
+  All gameplay data is externalized — modders can drop in files without touching the core engine.
 
 ---
 
-## 🗂️ Project Structure
+## 🚀 Getting Started
+
+> **Requirements:** [Download Godot 4.3+](https://godotengine.org/download)
+
+1. **Clone the repository:**
+
+    ```bash
+    git clone https://github.com/yourusername/doctrine.git
+    cd doctrine
+    ```
+
+2. **Open the project:**
+
+    Launch Godot and open the project directory, or run:
+    ```bash
+    godot .
+    ```
+
+3. **Play the test scene:**
+
+    Open and run `scenes/SandBox.tscn` to explore:
+    - Camera controls  
+    - Squad selection  
+    - Movement & formation logic
+
+---
+
+## 🗂️ Project Directory Overview
 
 ```bash
 doctrine/
-├── core/              # Shared logic and helper scripts
-├── data/              # Units, factions, abilities (.tres resources)
-├── mods/              # Player-made overrides (same structure as /data)
-├── scenes/            # In-game logic and 3D object scenes
-├── ui/                # HUD icons, cursors, markers
-└── README.md
+├── core/              # Engine-agnostic logic and utility scripts
+├── data/              # Base definitions (units, factions, buildings, etc.)
+├── mods/              # Optional modding layer (same structure as /data)
+├── scenes/            # RTS camera, selection, unit scenes
+├── ui/                # UI assets: cursors, HUD icons, markers
+└── README.md          # You're here!
+
