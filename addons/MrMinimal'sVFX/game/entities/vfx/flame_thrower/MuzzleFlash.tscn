@@ -1,0 +1,69 @@
+[gd_scene load_steps=11 format=3 uid="uid://cct8i0oo5inaq"]
+
+[ext_resource type="Texture2D" uid="uid://dk0pxwxi60mpl" path="res://addons/MrMinimal'sVFX/addons/kenney-particles/textures/fire_01.png" id="1_dg4si"]
+
+[sub_resource type="Curve" id="Curve_cnj2s"]
+_data = [Vector2(0, 0), 0.0, 14.2592, 0, 0, Vector2(0.135693, 1), 0.0, 0.0, 0, 0, Vector2(0.616519, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 4
+
+[sub_resource type="CurveTexture" id="CurveTexture_v08oi"]
+curve = SubResource("Curve_cnj2s")
+
+[sub_resource type="Curve" id="Curve_tiwdx"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_1fc82"]
+curve = SubResource("Curve_tiwdx")
+
+[sub_resource type="Curve" id="Curve_8h3q6"]
+_data = [Vector2(0, 0.307068), 0.0, 4.87449, 0, 0, Vector2(0.436578, 1), 0.0, 0.0, 0, 0, Vector2(1, 0.646002), -0.851102, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_m5kmk"]
+curve = SubResource("Curve_8h3q6")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_d5qlp"]
+lifetime_randomness = 0.41
+spread = 5.0
+initial_velocity_min = 5.0
+initial_velocity_max = 5.0
+gravity = Vector3(0, 0, 0)
+scale_curve = SubResource("CurveTexture_m5kmk")
+alpha_curve = SubResource("CurveTexture_v08oi")
+emission_curve = SubResource("CurveTexture_1fc82")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bxeiv"]
+transparency = 1
+blend_mode = 1
+shading_mode = 2
+diffuse_mode = 3
+specular_mode = 2
+disable_ambient_light = true
+vertex_color_use_as_albedo = true
+albedo_color = Color(1, 0.537255, 0.160784, 1)
+albedo_texture = ExtResource("1_dg4si")
+emission_enabled = true
+emission = Color(1, 0.538, 0.16, 1)
+emission_energy_multiplier = 5.0
+
+[sub_resource type="QuadMesh" id="QuadMesh_44bd3"]
+material = SubResource("StandardMaterial3D_bxeiv")
+size = Vector2(0.7, 0.7)
+
+[node name="MuzzleFlash" type="Node3D"]
+
+[node name="OmniLight3D" type="OmniLight3D" parent="."]
+transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 0, 0, 0)
+light_color = Color(1, 0.65, 0, 1)
+omni_range = 2.23784
+
+[node name="Flame1" type="GPUParticles3D" parent="."]
+transform = Transform3D(1, -1.06581e-14, 0, 1.06581e-14, 1, 0, 0, 0, 1, 0, 0, 0)
+emitting = false
+amount = 3
+lifetime = 0.05
+one_shot = true
+transform_align = 3
+process_material = SubResource("ParticleProcessMaterial_d5qlp")
+draw_pass_1 = SubResource("QuadMesh_44bd3")

@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://cucdh00nwvqqf"]
+
+[ext_resource type="PackedScene" uid="uid://b8rurpkdgs1nc" path="res://MrMinimal'sVFX/development/showcase_pedestral/pedestral.blend" id="1_dm4nn"]
+
+[node name="Pedestral" type="Node3D"]
+
+[node name="Pedestral" parent="." instance=ExtResource("1_dm4nn")]

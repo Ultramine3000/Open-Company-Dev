@@ -23,10 +23,10 @@ render_priority = 0
 shader = ExtResource("1_tu0pt")
 shader_parameter/time_scale = 1.0
 shader_parameter/moss_coverage = 0.6
-shader_parameter/leaf_scatter = 0.0
+shader_parameter/leaf_scatter = 0.131
 shader_parameter/moisture_amount = 0.5
 shader_parameter/texture_scale = 0.5
-shader_parameter/normal_strength = 0.565
+shader_parameter/normal_strength = 0.748
 shader_parameter/roughness_base = 0.8
 shader_parameter/metallic_base = 0.05
 shader_parameter/height_scale = 0.02
@@ -42,7 +42,7 @@ size = Vector3(332, 338, 1)
 vertices = PackedVector3Array(-74.5, 0.499997, -74.5, -74.5, 0.499997, 74.5, 74.5, 0.499997, 74.5, 74.5, 0.499997, -74.5)
 polygons = [PackedInt32Array(3, 2, 0), PackedInt32Array(0, 2, 1)]
 
-[node name="Node3D" type="Node3D"]
+[node name="World" type="Node3D"]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_e724j")
@@ -54,18 +54,18 @@ shadow_enabled = true
 
 [node name="TestGround" type="StaticBody3D" parent="."]
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="TestGround"]
+[node name="Terrain" type="MeshInstance3D" parent="TestGround"]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0.242881, 0)
 mesh = SubResource("QuadMesh_maf4d")
 
-[node name="Ground2" type="CollisionShape3D" parent="TestGround"]
+[node name="GroundCollision" type="CollisionShape3D" parent="TestGround"]
 transform = Transform3D(0.445, 0, 0, 0, -1.94516e-08, 0.445, 0, -0.445, -1.94516e-08, 0.261422, -1.95831e-09, -0.0448036)
 shape = SubResource("BoxShape3D_tu0pt")
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="TestGround"]
 navigation_mesh = SubResource("NavigationMesh_h66ac")
 
-[node name="Ground2" type="CollisionShape3D" parent="TestGround/NavigationRegion3D"]
+[node name="NavPlane" type="CollisionShape3D" parent="TestGround/NavigationRegion3D"]
 transform = Transform3D(0.445, 0, 0, 0, -1.94516e-08, 0.445, 0, -0.445, -1.94516e-08, 0.261422, -1.95831e-09, -0.0448036)
 shape = SubResource("BoxShape3D_tu0pt")
 
@@ -75,8 +75,8 @@ shape = SubResource("BoxShape3D_tu0pt")
 
 [node name="CloneContainer" type="Node3D" parent="."]
 
-[node name="Tirailleur_Sqaud" parent="." instance=ExtResource("4_h66ac")]
-transform = Transform3D(-0.780845, 0, -0.624725, 0, 1, 0, 0.624725, 0, -0.780845, 28.0403, 0.205716, 17.2829)
-
 [node name="Gren_Sqaud" parent="." instance=ExtResource("3_e724j")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22.0325, 0.21286, -19.9115)
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -29.0325, 0.21286, 5.21787)
+
+[node name="Tirailleur_Sqaud" parent="." instance=ExtResource("4_h66ac")]
+transform = Transform3D(0.211632, 0, -0.97735, 0, 1, 0, 0.97735, 0, 0.211632, 28.0938, 0.225999, 1.60161)

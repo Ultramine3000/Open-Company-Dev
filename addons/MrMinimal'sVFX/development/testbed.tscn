@@ -1,0 +1,214 @@
+[gd_scene load_steps=27 format=3 uid="uid://yc58xlbaxjhx"]
+
+[ext_resource type="PackedScene" uid="uid://dadb11c7577uy" path="res://addons/MrMinimal'sVFX/addons/kenney-prototype-tools/cube.blend" id="2_6nqgm"]
+[ext_resource type="Material" uid="uid://btqih0gnpbjup" path="res://addons/MrMinimal'sVFX/addons/kenney-prototype-tools/cube.tres" id="3_mhg46"]
+[ext_resource type="PackedScene" uid="uid://r1vnx3njthfx" path="res://addons/MrMinimal'sVFX/game/entities/vfx/floating_dust/floating_dust.tscn" id="5_srwim"]
+[ext_resource type="PackedScene" uid="uid://ctqrwrw5byilx" path="res://addons/MrMinimal'sVFX/game/entities/vfx/sparks_metal/sparks_metal.tscn" id="6_2onyj"]
+[ext_resource type="PackedScene" uid="uid://75vtg2lm6alt" path="res://addons/MrMinimal'sVFX/game/entities/vfx/sparks_boiling/sparks_boiling.tscn" id="7_33di8"]
+[ext_resource type="PackedScene" uid="uid://fqyfcgi5ndu6" path="res://addons/MrMinimal'sVFX/game/entities/vfx/sparks_electric/sparks_electric.tscn" id="7_lpmke"]
+[ext_resource type="Texture2D" uid="uid://cpj8bwphi8qn3" path="res://addons/MrMinimal'sVFX/addons/kenney-particles/textures/trace_06.png" id="8_3byiq"]
+[ext_resource type="PackedScene" uid="uid://b0ts6sn8pmdcd" path="res://addons/MrMinimal'sVFX/game/entities/vfx/sparks_ring/sparks_ring.tscn" id="8_64n8j"]
+[ext_resource type="Texture2D" uid="uid://cu17kfu1o28q7" path="res://addons/MrMinimal'sVFX/addons/kenney-particles/textures/circle_01.png" id="9_foccb"]
+[ext_resource type="PackedScene" uid="uid://b8rurpkdgs1nc" path="res://addons/MrMinimal'sVFX/development/showcase_pedestral/pedestral.blend" id="9_o2uvp"]
+[ext_resource type="PackedScene" uid="uid://b44xkotxkurrs" path="res://addons/MrMinimal'sVFX/game/entities/vfx/electric_arc/electric_arc.tscn" id="11_duei7"]
+[ext_resource type="PackedScene" uid="uid://c7y4kcbxplxix" path="res://addons/MrMinimal'sVFX/game/entities/vfx/atom/atom.tscn" id="13_likuh"]
+[ext_resource type="PackedScene" uid="uid://cucdh00nwvqqf" path="res://addons/MrMinimal'sVFX/development/showcase_pedestral/pedestral.tscn" id="16_0mhmx"]
+[ext_resource type="PackedScene" uid="uid://cct8i0oo5inaq" path="res://addons/MrMinimal'sVFX/game/entities/vfx/flame_thrower/MuzzleFlash.tscn" id="23_1dnux"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_snccu"]
+size = Vector3(50, 2, 50)
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_8kx5l"]
+lifetime_randomness = 0.55
+emission_shape = 3
+emission_box_extents = Vector3(1, 0, 1)
+velocity_pivot = Vector3(1, 0, 0)
+direction = Vector3(0, -1, 0)
+spread = 0.0
+initial_velocity_min = 9.0
+initial_velocity_max = 9.0
+gravity = Vector3(0, 0, 0)
+collision_mode = 1
+collision_friction = 0.0
+collision_bounce = 0.0
+sub_emitter_mode = 3
+sub_emitter_amount_at_collision = 1
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_va43c"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+specular_mode = 2
+disable_ambient_light = true
+albedo_color = Color(1, 1, 1, 0.0980392)
+albedo_texture = ExtResource("8_3byiq")
+disable_receive_shadows = true
+billboard_mode = 3
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+particles_anim_loop = false
+
+[sub_resource type="QuadMesh" id="QuadMesh_1x00j"]
+material = SubResource("StandardMaterial3D_va43c")
+size = Vector2(0.08, 0.6)
+
+[sub_resource type="Curve" id="Curve_34uxo"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.814159, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), -8.79302, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_oyw1y"]
+curve = SubResource("Curve_34uxo")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_jpdth"]
+gravity = Vector3(0, 0, 0)
+scale_curve = SubResource("CurveTexture_oyw1y")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4rsab"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+albedo_color = Color(1, 1, 1, 0.372549)
+albedo_texture = ExtResource("9_foccb")
+
+[sub_resource type="QuadMesh" id="QuadMesh_4b0q2"]
+material = SubResource("StandardMaterial3D_4rsab")
+size = Vector2(0.08, 0.08)
+orientation = 1
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_5ka4q"]
+emission_shape = 3
+emission_box_extents = Vector3(1, 1, 1)
+velocity_pivot = Vector3(1, 0, 0)
+direction = Vector3(0, 0, 1)
+spread = 180.0
+initial_velocity_min = 0.1
+initial_velocity_max = 0.1
+gravity = Vector3(0, 0, 0)
+collision_use_scale = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_w4xhj"]
+metallic = 1.0
+roughness = 0.36
+
+[sub_resource type="SphereMesh" id="SphereMesh_uawci"]
+material = SubResource("StandardMaterial3D_w4xhj")
+radius = 0.2
+height = 0.4
+
+[node name="Testbed" type="Node3D"]
+
+[node name="Ground" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25, 0, -25)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, -1, 25)
+shape = SubResource("BoxShape3D_snccu")
+
+[node name="Cube" parent="Ground" instance=ExtResource("2_6nqgm")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2, 0)
+
+[node name="Cube" parent="Ground/Cube" index="0"]
+transform = Transform3D(25, 0, 0, 0, 1, 0, 0, 0, 25, 0, 0, 0)
+surface_material_override/0 = ExtResource("3_mhg46")
+
+[node name="Particles" type="Node3D" parent="."]
+
+[node name="PedestralRing" parent="Particles" instance=ExtResource("9_o2uvp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 0)
+
+[node name="SparksRing" parent="Particles/PedestralRing" instance=ExtResource("8_64n8j")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0623002, 1.82363, 1.4474)
+
+[node name="OmniLight3D" type="OmniLight3D" parent="Particles/PedestralRing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0533793, 1.12646, 1.49903)
+light_color = Color(1, 0.788235, 0.588235, 1)
+omni_range = 2.29758
+
+[node name="PedestralBoiling" parent="Particles" instance=ExtResource("9_o2uvp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 0)
+
+[node name="SparksBoiling" parent="Particles/PedestralBoiling" instance=ExtResource("7_33di8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0360213, 1.58527)
+
+[node name="PedestralRain" parent="Particles" instance=ExtResource("9_o2uvp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, 0)
+
+[node name="SparksRain" type="Node3D" parent="Particles/PedestralRain"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0360213, 1.58527)
+
+[node name="GPUParticle3D" type="GPUParticles3D" parent="Particles/PedestralRain/SparksRain"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.06763, 0)
+cast_shadow = 0
+gi_mode = 0
+amount = 50
+sub_emitter = NodePath("../SpawnMeee")
+lifetime = 0.4
+fixed_fps = 60
+collision_base_size = 0.03
+transform_align = 2
+process_material = SubResource("ParticleProcessMaterial_8kx5l")
+draw_pass_1 = SubResource("QuadMesh_1x00j")
+
+[node name="GPUParticlesCollisionBox3D" type="GPUParticlesCollisionBox3D" parent="Particles/PedestralRain/SparksRain"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.02804, 0)
+size = Vector3(3.15, 2, 3.5)
+
+[node name="SpawnMeee" type="GPUParticles3D" parent="Particles/PedestralRain/SparksRain"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.86078, 0.76895, -0.00720167)
+amount = 500
+lifetime = 0.3
+process_material = SubResource("ParticleProcessMaterial_jpdth")
+draw_pass_1 = SubResource("QuadMesh_4b0q2")
+
+[node name="PedestralSparksElectric" parent="Particles" instance=ExtResource("9_o2uvp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 0)
+
+[node name="GPUParticlesCollisionBox3D" type="GPUParticlesCollisionBox3D" parent="Particles/PedestralSparksElectric"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0167542, -0.475559, 1.60087)
+size = Vector3(3.0318, 0.976563, 2.50327)
+
+[node name="SparksElectric" parent="Particles/PedestralSparksElectric" instance=ExtResource("7_lpmke")]
+transform = Transform3D(0.468932, -0.883234, 0, 0.883234, 0.468932, 0, 0, 0, 1, -1.14213, 0.279163, 1.31933)
+
+[node name="PedestralSparksMetal" parent="Particles" instance=ExtResource("9_o2uvp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, 0)
+
+[node name="GPUParticlesCollisionBox3D" type="GPUParticlesCollisionBox3D" parent="Particles/PedestralSparksMetal"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0167542, -0.475559, 1.60087)
+size = Vector3(3.0318, 0.976563, 2.50327)
+
+[node name="SparksMetal" parent="Particles/PedestralSparksMetal" instance=ExtResource("6_2onyj")]
+transform = Transform3D(0.468932, -0.883234, 0, 0.883234, 0.468932, 0, 0, 0, 1, -1.03783, 0.279163, 1.77052)
+
+[node name="PedestralFloatingDust" parent="Particles" instance=ExtResource("9_o2uvp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0, 0)
+
+[node name="FloatingDust" parent="Particles/PedestralFloatingDust" instance=ExtResource("5_srwim")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.02497, 1.52228)
+process_material = SubResource("ParticleProcessMaterial_5ka4q")
+
+[node name="PedestralLightningBolt" parent="Particles" instance=ExtResource("9_o2uvp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Particles/PedestralLightningBolt"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7, 0.348, 1.254)
+mesh = SubResource("SphereMesh_uawci")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="Particles/PedestralLightningBolt"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7, 0.348, 1.254)
+mesh = SubResource("SphereMesh_uawci")
+
+[node name="ElectricArc" parent="Particles/PedestralLightningBolt" instance=ExtResource("11_duei7")]
+
+[node name="PedestralAtom" parent="Particles" instance=ExtResource("9_o2uvp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, 0)
+
+[node name="Atom" parent="Particles/PedestralAtom" instance=ExtResource("13_likuh")]
+
+[node name="PedestralFlamethrower" parent="Particles" instance=ExtResource("16_0mhmx")]
+
+[node name="Flamethrower" parent="Particles/PedestralFlamethrower" instance=ExtResource("23_1dnux")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.109674, 1.34284)
+
+[editable path="Ground/Cube"]
+[editable path="Particles/PedestralFloatingDust/FloatingDust"]

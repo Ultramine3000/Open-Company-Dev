@@ -1,0 +1,68 @@
+[gd_scene load_steps=12 format=3 uid="uid://75vtg2lm6alt"]
+
+[ext_resource type="Texture2D" uid="uid://b1ohrdsk1tw3g" path="res://MrMinimal'sVFX/addons/kenney-particles/textures/circle_05.png" id="1_hhlhq"]
+
+[sub_resource type="Curve" id="Curve_naoyv"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.110701, 1), 0.0, 0.0, 0, 0, Vector2(0.782288, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), -3.65777, 0.0, 0, 0]
+point_count = 4
+
+[sub_resource type="CurveTexture" id="CurveTexture_0ji7g"]
+curve = SubResource("Curve_naoyv")
+
+[sub_resource type="Curve" id="Curve_vf70i"]
+_data = [Vector2(0, 0.467375), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_5xr2k"]
+curve = SubResource("Curve_vf70i")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_pxfbo"]
+lifetime_randomness = 0.55
+emission_shape = 3
+emission_box_extents = Vector3(1, 0, 1)
+velocity_pivot = Vector3(1, 0, 0)
+direction = Vector3(0, 1, 0)
+gravity = Vector3(0, 0.3, 0)
+scale_curve = SubResource("CurveTexture_0ji7g")
+scale_over_velocity_curve = SubResource("CurveTexture_5xr2k")
+collision_use_scale = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3u434"]
+transparency = 1
+blend_mode = 1
+specular_mode = 2
+disable_ambient_light = true
+albedo_texture = ExtResource("1_hhlhq")
+emission_enabled = true
+emission = Color(1, 0.4375, 0.25, 1)
+emission_energy_multiplier = 16.0
+disable_receive_shadows = true
+
+[sub_resource type="QuadMesh" id="QuadMesh_sfrns"]
+material = SubResource("StandardMaterial3D_3u434")
+size = Vector2(0.08, 0.08)
+
+[sub_resource type="Gradient" id="Gradient_ihi0x"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_16q5s"]
+
+[sub_resource type="NoiseTexture3D" id="NoiseTexture3D_etjb5"]
+color_ramp = SubResource("Gradient_ihi0x")
+noise = SubResource("FastNoiseLite_16q5s")
+
+[node name="SparksBoiling" type="Node3D"]
+
+[node name="GPUParticle3D" type="GPUParticles3D" parent="."]
+cast_shadow = 0
+gi_mode = 0
+amount = 1000
+lifetime = 3.0
+transform_align = 3
+process_material = SubResource("ParticleProcessMaterial_pxfbo")
+draw_pass_1 = SubResource("QuadMesh_sfrns")
+
+[node name="GPUParticlesAttractorVectorField3D" type="GPUParticlesAttractorVectorField3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+visible = false
+strength = 4.0
+texture = SubResource("NoiseTexture3D_etjb5")

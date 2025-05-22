@@ -1,0 +1,36 @@
+[gd_scene load_steps=5 format=3 uid="uid://7w17jcyqrmsb"]
+
+[sub_resource type="Gradient" id="Gradient_s55bn"]
+offsets = PackedFloat32Array(0, 0.272727, 0.818182, 1)
+colors = PackedColorArray(0.933333, 0.294118, 0.168627, 0, 0.933333, 0.294118, 0.168627, 1, 0.993272, 0.999982, 0.485683, 1, 1, 1, 0.2, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_d1tmh"]
+gradient = SubResource("Gradient_s55bn")
+height = 256
+fill_from = Vector2(1, 0.970085)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_g20r7"]
+transparency = 1
+cull_mode = 2
+albedo_texture = SubResource("GradientTexture2D_d1tmh")
+emission_enabled = true
+emission_texture = SubResource("GradientTexture2D_d1tmh")
+
+[sub_resource type="RibbonTrailMesh" id="RibbonTrailMesh_tb5kq"]
+material = SubResource("StandardMaterial3D_g20r7")
+size = 0.015
+sections = 2
+section_length = 0.305
+section_segments = 1
+
+[node name="tracer" type="Node3D"]
+
+[node name="tracer" type="MeshInstance3D" parent="."]
+transform = Transform3D(-8.52992, -0.0373686, 1.63343e-09, 0, -3.72858e-07, -8.53, 0.0373686, -8.52992, 3.72855e-07, 0, 2.42748, -2.71899)
+mesh = SubResource("RibbonTrailMesh_tb5kq")
+
+[node name="RayCast3D" type="RayCast3D" parent="tracer"]
+transform = Transform3D(0.478469, 0, 0, 0, 0.478299, -0.0127669, 0, 0.0127669, 0.478299, 0.000586646, 0.157839, -0.00679806)
+target_position = Vector3(0, 0.465, 0)
+collision_mask = 255
+collide_with_areas = true

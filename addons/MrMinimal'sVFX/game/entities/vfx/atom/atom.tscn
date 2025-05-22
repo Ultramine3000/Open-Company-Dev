@@ -1,0 +1,88 @@
+[gd_scene load_steps=12 format=3 uid="uid://c7y4kcbxplxix"]
+
+[ext_resource type="Texture2D" uid="uid://clhbx0gvncq2y" path="res://MrMinimal'sVFX/addons/kenney-particles/textures/trace_01.png" id="1_kntg2"]
+[ext_resource type="Shader" uid="uid://blum70c5pnh7w" path="res://MrMinimal'sVFX/game/entities/vfx/atom/black_hole.gdshader" id="2_8fg02"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jpkn3"]
+disable_ambient_light = true
+metallic_specular = 0.0
+roughness = 0.0
+emission_enabled = true
+emission = Color(0.3298, 0.51119, 0.97, 1)
+emission_energy_multiplier = 16.0
+rim_enabled = true
+clearcoat_roughness = 1.0
+refraction_scale = 1.0
+disable_receive_shadows = true
+
+[sub_resource type="SphereMesh" id="SphereMesh_jchqp"]
+material = SubResource("StandardMaterial3D_jpkn3")
+radius = 0.1
+height = 0.2
+
+[sub_resource type="Curve" id="Curve_n6mhf"]
+_data = [Vector2(0, 0.487102), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_bjw1c"]
+curve = SubResource("Curve_n6mhf")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_oh5d1"]
+spread = 180.0
+initial_velocity_min = 5.0
+initial_velocity_max = 5.0
+gravity = Vector3(0, 0, 0)
+scale_over_velocity_curve = SubResource("CurveTexture_bjw1c")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_khnmv"]
+transparency = 1
+blend_mode = 1
+specular_mode = 2
+disable_ambient_light = true
+albedo_texture = ExtResource("1_kntg2")
+emission_enabled = true
+emission = Color(0.72, 0.86, 1, 1)
+emission_energy_multiplier = 16.0
+disable_receive_shadows = true
+
+[sub_resource type="QuadMesh" id="QuadMesh_38jh4"]
+material = SubResource("StandardMaterial3D_khnmv")
+size = Vector2(0.1, 0.1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_4aolr"]
+render_priority = 0
+shader = ExtResource("2_8fg02")
+shader_parameter/black_hole_radius = 0.05
+shader_parameter/distortion_strength = 2.0
+shader_parameter/glitch_intensity = 0.5
+shader_parameter/time_scale = 1.0
+shader_parameter/noise_scale = 2.0
+shader_parameter/noise_intensity = 0.5
+shader_parameter/enable_glitch = false
+shader_parameter/outer_fade_start = 0.153
+shader_parameter/outer_fade_end = 0.5
+
+[sub_resource type="QuadMesh" id="QuadMesh_unqve"]
+material = SubResource("ShaderMaterial_4aolr")
+
+[node name="Atom" type="Node3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.799955, 1.03997)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_jchqp")
+skeleton = NodePath("../..")
+
+[node name="GPUParticles3D" type="GPUParticles3D" parent="MeshInstance3D"]
+amount = 100
+lifetime = 4.0
+transform_align = 3
+process_material = SubResource("ParticleProcessMaterial_oh5d1")
+draw_pass_1 = SubResource("QuadMesh_38jh4")
+
+[node name="GPUParticlesAttractorSphere3D2" type="GPUParticlesAttractorSphere3D" parent="MeshInstance3D"]
+strength = 40.0
+attenuation = 0.210224
+radius = 1.25403
+
+[node name="BlackHole" type="MeshInstance3D" parent="MeshInstance3D"]
+mesh = SubResource("QuadMesh_unqve")

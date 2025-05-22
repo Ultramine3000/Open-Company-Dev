@@ -1,0 +1,43 @@
+[gd_scene load_steps=5 format=3 uid="uid://b0ts6sn8pmdcd"]
+
+[ext_resource type="Texture2D" uid="uid://clhbx0gvncq2y" path="res://MrMinimal'sVFX/addons/kenney-particles/textures/trace_01.png" id="1_fhv76"]
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_dnugg"]
+velocity_pivot = Vector3(1, 0, 0)
+flatness = 0.74
+initial_velocity_min = 2.0
+initial_velocity_max = 2.5
+gravity = Vector3(0, 0, 0)
+collision_use_scale = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ylrsi"]
+transparency = 1
+blend_mode = 1
+specular_mode = 2
+disable_ambient_light = true
+albedo_texture = ExtResource("1_fhv76")
+emission_enabled = true
+emission = Color(1, 0.4375, 0.25, 1)
+emission_energy_multiplier = 16.0
+disable_receive_shadows = true
+
+[sub_resource type="QuadMesh" id="QuadMesh_0u0tx"]
+material = SubResource("StandardMaterial3D_ylrsi")
+size = Vector2(0.15, 0.15)
+
+[node name="SparksRing" type="Node3D"]
+
+[node name="GPUParticle3D" type="GPUParticles3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0)
+cast_shadow = 0
+gi_mode = 0
+amount = 1000
+lifetime = 3.0
+transform_align = 3
+process_material = SubResource("ParticleProcessMaterial_dnugg")
+draw_pass_1 = SubResource("QuadMesh_0u0tx")
+
+[node name="GPUParticlesAttractorSphere3D" type="GPUParticlesAttractorSphere3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.66221, 0)
+strength = 7.0
+attenuation = 1e-05
