@@ -8386,7 +8386,7 @@ bones/66/rotation = Quaternion(2.75904e-08, -1.09256e-07, 1.16415e-08, 1)
 bones/66/scale = Vector3(1, 1, 1)
 
 [node name="model_4_001" type="BoneAttachment3D" parent="Infantry/Armature/Skeleton3D"]
-transform = Transform3D(25.413, -1.89328, 9.09979, 3.06509, 26.7172, -3.00113, -8.77474, 3.84929, 25.3061, -18.7523, -4.80394, -347.699)
+transform = Transform3D(25.413, -1.89325, 9.0998, 3.06507, 26.7172, -3.00117, -8.77475, 3.84932, 25.3061, -18.7523, -4.80372, -347.699)
 bone_name = "model_4.001"
 bone_idx = 7
 
@@ -8395,7 +8395,7 @@ mesh = SubResource("ArrayMesh_7it8x")
 skeleton = NodePath("")
 
 [node name="french_rifle" type="BoneAttachment3D" parent="Infantry/Armature/Skeleton3D"]
-transform = Transform3D(2.61174, -0.215161, -21.228, 21.1626, -1.66528, 2.62057, -1.6791, -21.3232, 0.00954151, -25.3199, 21.3887, -284.365)
+transform = Transform3D(2.61177, -0.215139, -21.2281, 21.1626, -1.66525, 2.6206, -1.67906, -21.3232, 0.00952291, -25.3199, 21.3889, -284.365)
 bone_name = "french_rifle"
 bone_idx = 56
 
