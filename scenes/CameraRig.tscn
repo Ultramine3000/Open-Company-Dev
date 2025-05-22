@@ -10,8 +10,8 @@ transform = Transform3D(1, 0, 0, 0, 0.523302, 0.852147, 0, -0.852147, 0.523302, 
 
 [node name="Label" type="Label" parent="Camera3D"]
 offset_left = 3.0
-offset_top = 592.0
+offset_top = 3.0
 offset_right = 733.0
-offset_bottom = 702.0
-text = "- Use the \"Middle Mouse Button\" to Zoom and Pan the Camera
-- Unit can be selected by \"Left Clicking\" and moved to a location by \"Right Clicking\" the ground."
+offset_bottom = 113.0
+text = "Use the \"Middle Mouse Button\" to Zoom and Pan the Camera
+Unit can be selected by \"Left Clicking\" and moved to a location by \"Right Clicking\" the ground."

@@ -14,9 +14,16 @@ var current_enemy: Node = null
 var attack_timer := 0.0
 var attack_interval := 2.0  # time between shots
 
+var is_dead := false  # At the top of the script
+
 var infantry_clones: Array = []
 var is_selected: bool = false:
 	set(value):
+		# Don't allow selection if squad is dead
+		if is_dead:
+			is_selected = false
+			return
+			
 		is_selected = value
 		if selection_ring:
 			selection_ring.visible = value
@@ -33,7 +40,7 @@ var last_movement_rotation: float = 0.0
 
 func _ready():
 	if anim_player:
-		anim_player.play("Idle_1")
+		anim_player.play(_get_random_idle_animation())
 	if selection_ring:
 		selection_ring.visible = false
 
@@ -76,6 +83,7 @@ func _spawn_infantry_clones(count: int):
 		# Use the same health value for all squad members from stats
 		clone.set_meta("health", stats.health)  # Initialize health from stats
 		clone.set_meta("max_health", stats.health)  # Track max health for potential healing
+		clone.set_meta("is_dead", false)  # Track individual clone death state
 		
 		# Add to container first (but don't show yet)
 		clone.visible = false
@@ -95,7 +103,7 @@ func _spawn_infantry_clones(count: int):
 
 		var clone_anim = clone.get_node_or_null("AnimationPlayer")
 		if clone_anim:
-			clone_anim.play("Idle_1")
+			clone_anim.play(_get_random_idle_animation())
 			
 		var ring = clone.get_node_or_null("SelectionRing")
 		if ring:
@@ -104,10 +112,34 @@ func _spawn_infantry_clones(count: int):
 		infantry_clones.append(clone)
 
 func _physics_process(delta):
+	# Don't process if we're dead
+	if is_dead:
+		return
+		
+	# Don't process if we're dead/being destroyed
+	if stats.health <= 0:
+		if not is_dead:  # Only trigger death sequence once
+			is_dead = true
+			_handle_squad_death()
+		return
+		
 	if nav_agent == null:
 		return
 
 	var is_moving = not nav_agent.is_navigation_finished()
+
+	# Check if we have any valid clones remaining
+	var valid_clones = []
+	for clone in infantry_clones:
+		if is_instance_valid(clone) and not clone.is_queued_for_deletion():
+			# Also check if clone is dead
+			var clone_is_dead = clone.get_meta("is_dead", false)
+			if not clone_is_dead:
+				valid_clones.append(clone)
+	
+	# Clean up infantry_clones array if needed
+	if valid_clones.size() != infantry_clones.size():
+		infantry_clones = valid_clones.duplicate()
 
 	# If we're moving, pause attacking but still track enemies
 	if is_moving:
@@ -144,24 +176,42 @@ func _physics_process(delta):
 		move_and_slide()  # Still call this to apply any lingering velocity
 
 		# Only return to idle if not in combat and not moving
-		if not enemy_in_range and anim_player.current_animation != "Idle_1":
-			anim_player.play("Idle_1")
+		if not enemy_in_range and anim_player.current_animation != "Idle_1" and anim_player.current_animation != "Idle_2":
+			anim_player.play(_get_random_idle_animation())
 		elif enemy_in_range and not is_attacking and anim_player.current_animation != "Aim" and anim_player.current_animation != "Fire":
 			anim_player.play("Aim")
 
-	_process_clone_movement(delta)
+	# Only process clone movement if we have clones
+	if infantry_clones.size() > 0:
+		_process_clone_movement(delta)
+		
 	_check_for_nearby_enemies()
 
 	# Only process combat if not moving and enemy is in range
 	if enemy_in_range and not is_moving and not is_attacking:
 		attack_timer += delta
-		if attack_timer >= attack_interval:
+		
+		# Adjust attack interval based on squad size for balance
+		# Smaller squads fire faster to compensate for fewer shots
+		var living_size = get_living_squad_size()
+		var adjusted_interval = attack_interval
+		if living_size <= 2:
+			adjusted_interval = attack_interval * 0.7  # 30% faster for small squads
+		elif living_size >= 5:
+			adjusted_interval = attack_interval * 1.3  # 30% slower for large squads
+			
+		if attack_timer >= adjusted_interval:
 			attack_timer = 0.0
 			_perform_attack()
 
 func _clone_play_animation(clone: Node3D, anim_name: String):
 	# More thorough validation to prevent errors with freed objects
 	if clone == null or not is_instance_valid(clone) or clone.is_queued_for_deletion():
+		return
+	
+	# Check if this clone is dead
+	var clone_is_dead = clone.get_meta("is_dead", false)
+	if clone_is_dead:
 		return
 		
 	# Make sure the clone still has an animation player
@@ -174,7 +224,9 @@ func _process_clone_movement(delta):
 	var valid_clones = []
 	for clone in infantry_clones:
 		if is_instance_valid(clone) and not clone.is_queued_for_deletion():
-			valid_clones.append(clone)
+			var clone_is_dead = clone.get_meta("is_dead", false)
+			if not clone_is_dead:
+				valid_clones.append(clone)
 			
 	# Clean up our actual array if needed
 	if valid_clones.size() != infantry_clones.size():
@@ -244,8 +296,8 @@ func _process_clone_movement(delta):
 			clone.global_translate(move_vec.normalized() * stats.move_speed * 0.5 * delta)
 		else:
 			# Return to idle if not moving and not in combat
-			if clone_anim_player and clone_anim_player.current_animation != "Idle_1":
-				clone_anim_player.play("Idle_1")
+			if clone_anim_player and clone_anim_player.current_animation != "Idle_1" and clone_anim_player.current_animation != "Idle_2":
+				clone_anim_player.play(_get_random_idle_animation())
 		
 		# Dead zone to stop jitter - ONLY apply this when not in combat
 		if distance < 0.05 and not enemy_in_range:
@@ -254,8 +306,8 @@ func _process_clone_movement(delta):
 			clone.global_transform.origin = pos
 
 			# Only switch to idle if not moving and we're not in combat
-			if clone_anim_player and clone_anim_player.current_animation != "Idle_1" and not is_attacking and not is_moving:
-				clone_anim_player.play("Idle_1")
+			if clone_anim_player and clone_anim_player.current_animation != "Idle_1" and clone_anim_player.current_animation != "Idle_2" and not is_attacking and not is_moving:
+				clone_anim_player.play(_get_random_idle_animation())
 			continue
 
 		# ⛔ Avoid getting too close to the leader
@@ -285,6 +337,10 @@ func _process_clone_movement(delta):
 		clone.global_transform.origin = new_pos
 
 func move_to_position(pos: Vector3):
+	# Don't accept move commands if dead
+	if is_dead:
+		return
+		
 	if nav_agent:
 		nav_agent.set_target_position(pos)
 		
@@ -313,9 +369,11 @@ func move_to_position(pos: Vector3):
 		# Apply movement animation to clones as well
 		for clone in infantry_clones:
 			if is_instance_valid(clone) and not clone.is_queued_for_deletion():
-				var clone_anim = clone.get_node_or_null("AnimationPlayer")
-				if clone_anim and clone_anim.current_animation != "Move":
-					clone_anim.play("Move")
+				var clone_is_dead = clone.get_meta("is_dead", false)
+				if not clone_is_dead:
+					var clone_anim = clone.get_node_or_null("AnimationPlayer")
+					if clone_anim and clone_anim.current_animation != "Move":
+						clone_anim.play("Move")
 		
 		# Only clear enemy target if we're moving away from combat
 		var dist_to_target = global_transform.origin.distance_to(pos)
@@ -334,6 +392,9 @@ func _check_for_nearby_enemies():
 	for node in get_tree().get_nodes_in_group(opposing_group):
 		if not node is CharacterBody3D or not is_instance_valid(node):
 			continue
+		# Don't target dead enemies
+		if node.has_method("is_dead") and node.is_dead:
+			continue
 		var dist = global_transform.origin.distance_to(node.global_transform.origin)
 		if dist <= detection_range and dist < closest_distance:
 			closest_enemy = node
@@ -351,21 +412,25 @@ func _check_for_nearby_enemies():
 			# Make clones aim immediately too
 			for clone in infantry_clones.duplicate():  # Use duplicate to avoid modification during iteration
 				if is_instance_valid(clone) and not clone.is_queued_for_deletion():
-					_clone_play_animation(clone, "Aim")
+					var clone_is_dead = clone.get_meta("is_dead", false)
+					if not clone_is_dead:
+						_clone_play_animation(clone, "Aim")
 	elif enemy_in_range:
 		enemy_in_range = false
 		current_enemy = null
 		
 		# Return to idle when no enemies are in range
 		if anim_player:
-			anim_player.play("Idle_1")
+			anim_player.play(_get_random_idle_animation())
 			
 		for clone in infantry_clones.duplicate():  # Use duplicate to avoid modification during iteration
 			if is_instance_valid(clone) and not clone.is_queued_for_deletion():
-				_clone_play_animation(clone, "Idle_1")
+				var clone_is_dead = clone.get_meta("is_dead", false)
+				if not clone_is_dead:
+					_clone_play_animation(clone, _get_random_idle_animation())
 
 func _perform_attack():
-	if not current_enemy or not is_instance_valid(current_enemy):
+	if not current_enemy or not is_instance_valid(current_enemy) or is_dead:
 		is_attacking = false
 		return
 		
@@ -380,9 +445,7 @@ func _perform_attack():
 			var target_rotation = atan2(direction_to_enemy.x, direction_to_enemy.z)
 			rotation.y = lerp_angle(rotation.y, target_rotation, 0.5)  # Quick rotation for attack
 
-	is_attacking = true
-
-	# Aim anims
+	# Aim anims for leader
 	if anim_player and anim_player.has_animation("Aim"):
 		anim_player.play("Aim")
 
@@ -390,27 +453,61 @@ func _perform_attack():
 	var valid_clones = []
 	for clone in infantry_clones:
 		if is_instance_valid(clone) and not clone.is_queued_for_deletion():
-			valid_clones.append(clone)
-			_clone_play_animation(clone, "Aim")
+			var clone_is_dead = clone.get_meta("is_dead", false)
+			if not clone_is_dead:
+				valid_clones.append(clone)
+				_clone_play_animation(clone, "Aim")
 
+	# CRITICAL FIX: Store attack state before await to check if squad died during wait
+	var attack_id = randi()  # Generate unique attack ID
+	set_meta("current_attack_id", attack_id)
+	
 	await get_tree().create_timer(0.3).timeout
 
-	# Fire anims
+	# Check if squad died during the aim delay OR if this attack is outdated
+	if is_dead or get_meta("current_attack_id", -1) != attack_id:
+		is_attacking = false
+		return
+
+	# Fire anims for leader
 	if anim_player and anim_player.has_animation("Fire") and is_instance_valid(current_enemy):
 		anim_player.play("Fire")
 
-	# Get squad strength for damage calculation based on valid clones
-	var squad_strength = 1 + valid_clones.size()
+	# Get current living squad strength for damage calculation
+	var squad_strength = get_living_squad_size()
+	
+	print("Squad firing with ", squad_strength, " living members")
 
+	# Fire anims for clones (if any) - more staggered timing
 	for i in range(valid_clones.size()):
+		# Check if squad died during the firing sequence OR attack is outdated
+		if is_dead or get_meta("current_attack_id", -1) != attack_id:
+			is_attacking = false
+			return
+			
 		var clone = valid_clones[i]
 		if not is_instance_valid(clone) or clone.is_queued_for_deletion():
 			continue
 			
-		var stagger_time = 0.05 * (i % 3)
+		# Check if this specific clone died during the attack
+		var clone_is_dead = clone.get_meta("is_dead", false)
+		if clone_is_dead:
+			continue
+			
+		# Increased stagger time and made it more varied
+		var stagger_time = 0.15 + (0.1 * (i % 4)) + randf_range(0.0, 0.1)
 		if stagger_time > 0:
 			await get_tree().create_timer(stagger_time).timeout
-		_clone_play_animation(clone, "Fire")
+			
+		# Check again after the timer in case squad died during wait OR attack is outdated
+		if is_dead or get_meta("current_attack_id", -1) != attack_id:
+			is_attacking = false
+			return
+			
+		# Final check if clone is still alive
+		clone_is_dead = clone.get_meta("is_dead", false)
+		if not clone_is_dead:
+			_clone_play_animation(clone, "Fire")
 
 	# Combat logic only performed by leader
 	if current_enemy and is_instance_valid(current_enemy):
@@ -423,103 +520,241 @@ func _perform_attack():
 		else:
 			accuracy = stats.long_range_accuracy
 
-		# Calculate hits based on squad strength and accuracy
-		var total_hits = 0
+		# Each squad member fires individually with reduced damage per shot
+		# This prevents entire squads from being wiped out in one volley
 		for i in range(squad_strength):
 			if randf() <= accuracy:
-				total_hits += 1
-				
-		if total_hits > 0 and current_enemy.has_method("take_damage"):
-			current_enemy.take_damage(total_hits)
+				# Each successful hit only deals 1 damage
+				if current_enemy.has_method("take_damage"):
+					current_enemy.take_damage(1)
+					
+					# Check if enemy squad is dead after each shot to avoid overkill
+					if current_enemy.has_method("is_squad_dead") and current_enemy.is_squad_dead():
+						break
+					elif current_enemy.get("is_dead") == true:
+						break
 
 	await get_tree().create_timer(0.5).timeout  # Give time for anims to finish
 	
-	# Make sure we're still in combat stance after attack finishes
-	if is_instance_valid(current_enemy) and enemy_in_range:
+	# Final check - don't continue if squad died during the attack sequence OR attack is outdated
+	if is_dead or get_meta("current_attack_id", -1) != attack_id:
+		is_attacking = false
+		return
+	
+	# Make sure we're still in combat stance after attack finishes (if still alive and enemy present)
+	if is_instance_valid(current_enemy) and enemy_in_range and stats.health > 0:
 		if anim_player and anim_player.has_animation("Aim"):
 			anim_player.play("Aim")
 			
+		# Only update clone animations if we still have clones
 		for clone in infantry_clones:
 			if is_instance_valid(clone) and not clone.is_queued_for_deletion():
-				_clone_play_animation(clone, "Aim")
+				var clone_is_dead = clone.get_meta("is_dead", false)
+				if not clone_is_dead:
+					_clone_play_animation(clone, "Aim")
 	
 	is_attacking = false
 
-func take_damage(amount: int):
-	# Distribute damage among clones first
-	var remaining_damage = amount
-	var clones_to_remove = []
-	
-	# Make a safe copy to iterate through
-	var valid_clones = []
-	for clone in infantry_clones:
-		if is_instance_valid(clone) and not clone.is_queued_for_deletion():
-			valid_clones.append(clone)
-	
-	# Randomly distribute damage among squad members
-	while remaining_damage > 0 and (valid_clones.size() > 0 or stats.health > 0):
-		# Randomly choose between leader and clones
-		var target_leader = randf() < (1.0 / (valid_clones.size() + 1))
+# Helper function to check if entire squad is dead
+func is_squad_dead() -> bool:
+	if is_dead:
+		return true
 		
-		if target_leader or valid_clones.size() == 0:
-			# Damage goes to the leader
-			stats.health -= 1
-			remaining_damage -= 1
+	# Check if leader is dead
+	if stats.health <= 0:
+		return true
+		
+	# Check if any clones are alive
+	for clone in infantry_clones:
+		if is_instance_valid(clone):
+			var clone_is_dead = clone.get_meta("is_dead", false)
+			var clone_health = clone.get_meta("health", 0)
+			if not clone_is_dead and clone_health > 0:
+				return false
+	
+	return true
+
+# Helper function to get squad size (living members only)
+func get_living_squad_size() -> int:
+	var living_count = 0
+	
+	# Count leader if alive
+	if stats.health > 0 and not is_dead:
+		living_count += 1
+		
+	# Count living clones
+	for clone in infantry_clones:
+		if is_instance_valid(clone):
+			var clone_is_dead = clone.get_meta("is_dead", false)
+			var clone_health = clone.get_meta("health", 0)
+			if not clone_is_dead and clone_health > 0:
+				living_count += 1
+				
+	return living_count
+
+# Helper function to get a random idle animation
+func _get_random_idle_animation() -> String:
+	var idle_anims = ["Idle_1", "Idle_2"]
+	return idle_anims[randi() % idle_anims.size()]
+
+# Helper function to get a random death animation
+func _get_random_death_animation() -> String:
+	var death_anims = ["Death_1", "Death_2", "Death_3"]
+	return death_anims[randi() % death_anims.size()]
+
+func _play_death_animation(unit: Node3D) -> void:
+	var anim_player_node = null
+	
+	# Handle different node structures - leader vs clones
+	if unit == self:
+		# For the leader, use the stored anim_player reference
+		anim_player_node = anim_player
+	else:
+		# For clones, look for AnimationPlayer as direct child
+		anim_player_node = unit.get_node_or_null("AnimationPlayer")
+	
+	if not anim_player_node:
+		print("No animation player found for death animation")
+		return
+	
+	# CRITICAL FIX: Force stop any current animation and immediately clear animation queue
+	anim_player_node.stop(true)  # true parameter clears the animation queue
+	anim_player_node.seek(0.0, true)  # Reset to beginning and update immediately
+	
+	# Wait one frame to ensure the stop took effect
+	await get_tree().process_frame
+	
+	print("Stopped current animation, playing death animation")
+	
+	var death_anim = _get_random_death_animation()
+	print("Selected death animation: ", death_anim)
+	
+	# Check if the animation exists, fallback to others if not
+	if anim_player_node.has_animation(death_anim):
+		anim_player_node.play(death_anim)
+		print("Playing death animation: ", death_anim)
+	elif anim_player_node.has_animation("Death_1"):
+		anim_player_node.play("Death_1")
+		death_anim = "Death_1"
+		print("Fallback to Death_1")
+	elif anim_player_node.has_animation("Death_2"):
+		anim_player_node.play("Death_2")
+		death_anim = "Death_2"
+		print("Fallback to Death_2")
+	elif anim_player_node.has_animation("Death_3"):
+		anim_player_node.play("Death_3")
+		death_anim = "Death_3"
+		print("Fallback to Death_3")
+	else:
+		# No death animation available
+		print("No death animations available!")
+
+func take_damage(amount: int):
+	# Don't take damage if already dead
+	if is_dead:
+		return
+		
+	# Process each point of damage individually to simulate realistic combat
+	for damage_point in range(amount):
+		# Check if squad is already dead
+		if is_dead:
+			break
 			
-			if stats.health <= 0:
-				# Leader is dead, whole squad is destroyed
-				_destroy_squad()
-				return
-		else:
-			# Damage goes to a random clone
-			var target_index = randi() % valid_clones.size()
-			var clone = valid_clones[target_index]
-			var hp = clone.get_meta("health")
+		# Get current valid clones for this damage point
+		var valid_clones = []
+		for clone in infantry_clones:
+			if is_instance_valid(clone) and not clone.is_queued_for_deletion():
+				var clone_is_dead = clone.get_meta("is_dead", false)
+				var clone_health = clone.get_meta("health", 0)
+				if not clone_is_dead and clone_health > 0:
+					valid_clones.append(clone)
+		
+		# PRIORITY SYSTEM: Target clones first, leader only when no clones remain
+		if valid_clones.size() > 0:
+			# Damage goes to a random clone (leader is protected while clones exist)
+			var clone_index = randi() % valid_clones.size()
+			var clone = valid_clones[clone_index]
+			var hp = clone.get_meta("health", 1)
 			hp -= 1
-			remaining_damage -= 1
+			clone.set_meta("health", hp)
+			
+			print("Clone took 1 damage, health now: ", hp)
 			
 			if hp <= 0:
-				clones_to_remove.append(clone)
-				# Remove from valid_clones to avoid targeting dead units
-				valid_clones.erase(clone)
-			else:
-				clone.set_meta("health", hp)
-	
-	# Remove dead clones
-	for clone in clones_to_remove:
-		infantry_clones.erase(clone)
-		clone.queue_free()
-	
-	# Final check - if leader health is <= 0 or if there are no clones left and leader health is critical,
-	# destroy the entire squad
-	if stats.health <= 0 or (valid_clones.size() == 0 and stats.health <= 1):
-		_destroy_squad()
+				print("Clone died, removing from squad")
+				infantry_clones.erase(clone)
+				_handle_clone_death(clone)
+		elif stats.health > 0:
+			# Only target leader when no clones remain
+			stats.health -= 1
+			print("Leader took 1 damage (no clones left), health now: ", stats.health)
+			
+			if stats.health <= 0:
+				# Leader is dead, trigger death sequence
+				if not is_dead:
+					is_dead = true
+					_handle_squad_death()
+				return
+		else:
+			# No valid targets remain
+			break
 
-# New method to properly handle squad destruction
-func _destroy_squad():
-	# First, clean up all clones
+# New method to handle individual clone death with animation
+func _handle_clone_death(clone: Node3D):
+	if not is_instance_valid(clone):
+		return
+	
+	# Mark clone as dead IMMEDIATELY to prevent further processing
+	clone.set_meta("is_dead", true)
+	
+	# Disable the clone's collision and movement while playing death animation
+	var collision_shape = clone.get_node_or_null("CollisionShape3D")
+	if collision_shape:
+		collision_shape.disabled = true
+	
+	# Hide selection ring if visible
+	var ring = clone.get_node_or_null("SelectionRing")
+	if ring:
+		ring.visible = false
+	
+	# Play death animation - this now properly handles stopping current animations
+	_play_death_animation(clone)
+
+# New method to handle squad death without destroying the squad
+func _handle_squad_death():
+	print("Squad is dead - disabling functionality but keeping unit")
+	
+	# IMMEDIATELY stop any ongoing attack sequence and invalidate future ones
+	is_attacking = false
+	set_meta("current_attack_id", -1)  # Invalidate any ongoing attack sequences
+	
+	# Stop all combat states and animations
+	current_enemy = null
+	enemy_in_range = false
+	
+	# Disable leader's collision to prevent further interactions
+	var collision_shape = get_node_or_null("CollisionShape3D")
+	if collision_shape:
+		collision_shape.disabled = true
+	
+	# Permanently hide selection ring
+	if selection_ring:
+		selection_ring.visible = false
+	
+	# Play death animation for the leader
+	_play_death_animation(self)
+	
+	# Handle remaining clones with death animations
 	for clone in infantry_clones:
 		if is_instance_valid(clone) and not clone.is_queued_for_deletion():
-			clone.queue_free()
+			var clone_is_dead = clone.get_meta("is_dead", false)
+			if not clone_is_dead:  # Only kill clones that aren't already dead
+				_handle_clone_death(clone)
 	
-	# Clear the clones array
-	infantry_clones.clear()
-	
-	# Make sure we're no longer a target for enemy units
-	# Remove from combat groups
+	# Remove from combat groups so enemies don't target this dead squad
 	if is_in_group("allies"):
 		remove_from_group("allies")
 	if is_in_group("axis"):
 		remove_from_group("axis")
 	
-	# Clear current enemy reference
-	current_enemy = null
-	enemy_in_range = false
-	
-	# Set up a small delay before we remove ourselves
-	# This allows any ongoing effects/sounds to finish
-	var timer = get_tree().create_timer(0.1)
-	await timer.timeout
-	
-	# Finally, queue ourselves for deletion
-	queue_free()
+	print("Squad death sequence complete - unit will remain but be non-functional")
