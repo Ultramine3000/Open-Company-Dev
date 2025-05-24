@@ -1,14 +1,16 @@
-[gd_scene load_steps=55 format=4 uid="uid://dsw1mjuyehgry"]
+[gd_scene load_steps=56 format=4 uid="uid://dsw1mjuyehgry"]
 
 [ext_resource type="Script" uid="uid://ba685cgyl4in3" path="res://core/scripts/infantry_sqaud.gd" id="1_0h55r"]
 [ext_resource type="Script" uid="uid://c1wddsm427l3n" path="res://core/scripts/CombatUnitData.gd" id="2_a5ipo"]
+[ext_resource type="Texture2D" uid="uid://b8y4mg8rb8ymf" path="res://data/assets/icons/Infantry.png" id="3_lsj27"]
 [ext_resource type="Texture2D" uid="uid://bux7qscg5g5c0" path="res://data/assets/icons/unit_selction_icon.png" id="4_bi1ue"]
 [ext_resource type="Script" uid="uid://dotaob5vq2ptd" path="res://core/scripts/muzzle_flash.gd" id="4_hsgtt"]
 [ext_resource type="Texture2D" uid="uid://dk0pxwxi60mpl" path="res://addons/MrMinimal'sVFX/addons/kenney-particles/textures/fire_01.png" id="5_lsj27"]
 
 [sub_resource type="Resource" id="Resource_sdxb2"]
 script = ExtResource("2_a5ipo")
-unit_name = ""
+unit_icon = ExtResource("3_lsj27")
+unit_name = "Gren"
 health = 3
 move_speed = 7.5
 cost = 0
@@ -8320,7 +8322,7 @@ bones/66/rotation = Quaternion(2.75904e-08, -1.09256e-07, 1.16415e-08, 1)
 bones/66/scale = Vector3(1, 1, 1)
 
 [node name="german_helmet" type="BoneAttachment3D" parent="Infantry/Armature/Skeleton3D"]
-transform = Transform3D(15.6152, -2.85813, 5.33836, 2.358, 22.1396, -0.3396, -5.23996, 1.4456, 15.7556, -18.9224, 7.19182, -342.128)
+transform = Transform3D(15.6152, -2.85813, 5.33836, 2.358, 22.1396, -0.339599, -5.23996, 1.4456, 15.7556, -18.9224, 7.19181, -342.128)
 bone_name = "german_helmet"
 bone_idx = 7
 
@@ -8329,7 +8331,7 @@ mesh = SubResource("ArrayMesh_lv5fo")
 skeleton = NodePath("")
 
 [node name="german_rifle" type="BoneAttachment3D" parent="Infantry/Armature/Skeleton3D"]
-transform = Transform3D(-9.65994, -0.0333368, 0.211529, 0.0307981, -9.66156, -0.116219, 0.211911, -0.115517, 9.65931, -28.4847, 84.209, -280.103)
+transform = Transform3D(-9.65994, -0.0333375, 0.211528, 0.0307968, -9.66156, -0.116219, 0.211912, -0.115516, 9.65931, -28.4847, 84.209, -280.103)
 bone_name = "german_rifle"
 bone_idx = 56
 

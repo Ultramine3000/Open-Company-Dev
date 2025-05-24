@@ -1,11 +1,12 @@
 extends CharacterBody3D
 
 @export var stats: CombatUnitData
-
+#@export var child_path : NodePath
 @onready var infantry_template: Node3D = $Infantry
 @onready var nav_agent: NavigationAgent3D = $Infantry/NavigationAgent3D
 @onready var anim_player: AnimationPlayer = $Infantry/AnimationPlayer
 @onready var selection_ring: Node3D = $Infantry/SelectionRing
+@onready var unit_bar: Node3D = $UnitBar
 
 var enemy_in_range := false
 var is_attacking := false
@@ -13,6 +14,10 @@ var is_attacking := false
 var current_enemy: Node = null
 var attack_timer := 0.0
 var attack_interval := 2.0  # time between shots
+
+var total_health : int 
+
+var current_health : float 
 
 var is_dead := false  # At the top of the script
 
@@ -39,6 +44,12 @@ var formation_right: Vector3
 var last_movement_rotation: float = 0.0
 
 func _ready():
+	
+	if not unit_bar: 
+		push_error("Unit Bar Scene missing")
+		return
+	unit_bar.set_albedo_texture(stats.unit_icon)
+		
 	if anim_player:
 		anim_player.play(_get_random_idle_animation())
 	if selection_ring:
@@ -51,6 +62,8 @@ func _ready():
 
 	if stats:
 		_spawn_infantry_clones(stats.squad_size)
+		total_health = stats.squad_size*stats.health
+		current_health = float(total_health)
 	else:
 		push_warning("CombatUnitData 'stats' not assigned!")
 
@@ -656,6 +669,7 @@ func take_damage(amount: int):
 		
 	# Process each point of damage individually to simulate realistic combat
 	for damage_point in range(amount):
+		print(range(amount))
 		# Check if squad is already dead
 		if is_dead:
 			break
@@ -677,9 +691,9 @@ func take_damage(amount: int):
 			var hp = clone.get_meta("health", 1)
 			hp -= 1
 			clone.set_meta("health", hp)
-			
-			print("Clone took 1 damage, health now: ", hp)
-			
+			current_health -= 1
+			print(stats.unit_name, " clone took 1 damage, health now: ", hp, " total squad health now: ", current_health)
+			unit_bar.set_health_bar(current_health / total_health)
 			if hp <= 0:
 				print("Clone died, removing from squad")
 				infantry_clones.erase(clone)
@@ -687,8 +701,9 @@ func take_damage(amount: int):
 		elif stats.health > 0:
 			# Only target leader when no clones remain
 			stats.health -= 1
-			print("Leader took 1 damage (no clones left), health now: ", stats.health)
-			
+			current_health -= 1
+			print(stats.unit_name, " leader took 1 damage (no clones left), health now: ", stats.health, " total squad health now: ", current_health)
+			unit_bar.set_health_bar(current_health / total_health)
 			if stats.health <= 0:
 				# Leader is dead, trigger death sequence
 				if not is_dead:
@@ -751,6 +766,8 @@ func _handle_squad_death():
 			if not clone_is_dead:  # Only kill clones that aren't already dead
 				_handle_clone_death(clone)
 	
+	unit_bar.delete_unit_bar()
+	
 	# Remove from combat groups so enemies don't target this dead squad
 	if is_in_group("allies"):
 		remove_from_group("allies")
@@ -758,3 +775,5 @@ func _handle_squad_death():
 		remove_from_group("axis")
 	
 	print("Squad death sequence complete - unit will remain but be non-functional")
+#
+#func _get_current_total_health():

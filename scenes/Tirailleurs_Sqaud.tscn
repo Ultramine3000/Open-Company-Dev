@@ -1,15 +1,17 @@
-[gd_scene load_steps=56 format=4 uid="uid://btfmenw7rsr23"]
+[gd_scene load_steps=57 format=4 uid="uid://btfmenw7rsr23"]
 
 [ext_resource type="Script" uid="uid://ba685cgyl4in3" path="res://core/scripts/infantry_sqaud.gd" id="1_my61e"]
 [ext_resource type="Script" uid="uid://c1wddsm427l3n" path="res://core/scripts/CombatUnitData.gd" id="2_eca55"]
+[ext_resource type="Texture2D" uid="uid://b8y4mg8rb8ymf" path="res://data/assets/icons/Infantry.png" id="3_dj76j"]
 [ext_resource type="Texture2D" uid="uid://bux7qscg5g5c0" path="res://data/assets/icons/unit_selction_icon.png" id="3_xq74o"]
 [ext_resource type="Script" uid="uid://dotaob5vq2ptd" path="res://core/scripts/muzzle_flash.gd" id="4_xq74o"]
 [ext_resource type="Texture2D" uid="uid://dk0pxwxi60mpl" path="res://addons/MrMinimal'sVFX/addons/kenney-particles/textures/fire_01.png" id="5_dj76j"]
 
 [sub_resource type="Resource" id="Resource_tnfcg"]
 script = ExtResource("2_eca55")
-unit_name = ""
-health = 3
+unit_icon = ExtResource("3_dj76j")
+unit_name = "Tira"
+health = 5
 move_speed = 7.0
 cost = 0
 weapon_type = ""
@@ -8438,7 +8440,7 @@ bones/66/rotation = Quaternion(2.75904e-08, -1.09256e-07, 1.16415e-08, 1)
 bones/66/scale = Vector3(1, 1, 1)
 
 [node name="model_4_001" type="BoneAttachment3D" parent="Infantry/Armature/Skeleton3D"]
-transform = Transform3D(25.1403, -1.49548, 9.89637, 3.68761, 26.2574, -5.4, -9.30462, 6.36569, 24.599, -22.1681, 6.62804, -345.933)
+transform = Transform3D(25.1403, -1.49548, 9.89637, 3.68761, 26.2574, -5.4, -9.30462, 6.36569, 24.599, -22.1681, 6.62803, -345.933)
 bone_name = "model_4.001"
 bone_idx = 7
 
@@ -8447,7 +8449,7 @@ mesh = SubResource("ArrayMesh_7it8x")
 skeleton = NodePath("")
 
 [node name="french_rifle" type="BoneAttachment3D" parent="Infantry/Armature/Skeleton3D"]
-transform = Transform3D(2.84544, -0.419657, -21.1949, 21.1984, -0.111003, 2.84811, -0.165878, -21.3848, 0.401145, -25.6954, 26.4945, -281.596)
+transform = Transform3D(2.84543, -0.41964, -21.1949, 21.1984, -0.111001, 2.8481, -0.165869, -21.3848, 0.401132, -25.6954, 26.4945, -281.596)
 bone_name = "french_rifle"
 bone_idx = 56
 

@@ -1,10 +1,11 @@
-[gd_scene load_steps=13 format=3 uid="uid://e15251a4dgtl"]
+[gd_scene load_steps=14 format=3 uid="uid://e15251a4dgtl"]
 
 [ext_resource type="PackedScene" uid="uid://dnw2cubtetdj" path="res://scenes/CameraRig.tscn" id="1_15ed5"]
 [ext_resource type="Shader" uid="uid://17ugqncw7ltl" path="res://data/assets/textures/JungleFloor.gdshader" id="1_tu0pt"]
 [ext_resource type="PackedScene" uid="uid://53ikbm0hxshl" path="res://scenes/SelectionManager.tscn" id="2_q8osp"]
 [ext_resource type="PackedScene" uid="uid://dsw1mjuyehgry" path="res://scenes/Gren_Sqaud.tscn" id="3_e724j"]
 [ext_resource type="PackedScene" uid="uid://btfmenw7rsr23" path="res://scenes/Tirailleurs_Sqaud.tscn" id="4_h66ac"]
+[ext_resource type="PackedScene" uid="uid://dxso8u25lsmf4" path="res://scenes/UnitBar.tscn" id="5_maf4d"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_15ed5"]
 sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
@@ -70,6 +71,7 @@ transform = Transform3D(0.445, 0, 0, 0, -1.94516e-08, 0.445, 0, -0.445, -1.94516
 shape = SubResource("BoxShape3D_tu0pt")
 
 [node name="CameraRig" parent="." instance=ExtResource("1_15ed5")]
+transform = Transform3D(1, 0, 0, 0, 0.995147, -0.0983994, 0, 0.0983994, 0.995147, -5.02558, 2.36729, 4.77977)
 
 [node name="SelectionManager" parent="." instance=ExtResource("2_q8osp")]
 
@@ -78,5 +80,11 @@ shape = SubResource("BoxShape3D_tu0pt")
 [node name="Gren_Sqaud" parent="." instance=ExtResource("3_e724j")]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -29.0325, 0.21286, 5.21787)
 
+[node name="UnitBar" parent="Gren_Sqaud" instance=ExtResource("5_maf4d")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.33043, 0)
+
 [node name="Tirailleur_Sqaud" parent="." instance=ExtResource("4_h66ac")]
-transform = Transform3D(0.211632, 0, -0.97735, 0, 1, 0, 0.97735, 0, 0.211632, 28.0938, 0.225999, 1.60161)
+transform = Transform3D(0.211632, 0, -0.97735, 0, 1, 0, 0.97735, 0, 0.211632, 21.9151, 0, 0)
+
+[node name="UnitBar" parent="Tirailleur_Sqaud" instance=ExtResource("5_maf4d")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.7425, 0)

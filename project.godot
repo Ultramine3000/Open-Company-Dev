@@ -11,8 +11,13 @@ config_version=5
 [application]
 
 config/name="Doctrine: Open Platoon Strategy"
+run/main_scene="uid://e15251a4dgtl"
 config/features=PackedStringArray("4.4", "GL Compatibility")
 config/icon="res://icon.svg"
+
+[filesystem]
+
+import/blender/enabled=false
 
 [rendering]
 

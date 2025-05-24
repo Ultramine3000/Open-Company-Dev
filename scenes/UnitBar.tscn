@@ -1,0 +1,31 @@
+[gd_scene load_steps=7 format=3 uid="uid://dxso8u25lsmf4"]
+
+[ext_resource type="Script" uid="uid://bw15sl161as7e" path="res://core/scripts/unit_bar.gd" id="1_3fbb0"]
+
+[sub_resource type="QuadMesh" id="QuadMesh_r2y8n"]
+size = Vector2(1, 0.2)
+center_offset = Vector3(0, 0.65, 0)
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_iggwg"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_8dryn"]
+albedo_texture = SubResource("PlaceholderTexture2D_iggwg")
+billboard_mode = 1
+
+[sub_resource type="QuadMesh" id="QuadMesh_3fbb0"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qhbpe"]
+billboard_mode = 1
+
+[node name="UnitBar" type="Node3D"]
+script = ExtResource("1_3fbb0")
+
+[node name="HealthBar" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00176835, -0.00223184, -0.000422955)
+mesh = SubResource("QuadMesh_r2y8n")
+skeleton = NodePath("../UnitIcon")
+surface_material_override/0 = SubResource("StandardMaterial3D_8dryn")
+
+[node name="UnitIcon" type="MeshInstance3D" parent="."]
+mesh = SubResource("QuadMesh_3fbb0")
+surface_material_override/0 = SubResource("StandardMaterial3D_qhbpe")
