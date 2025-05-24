@@ -1,15 +1,16 @@
-[gd_scene load_steps=56 format=4 uid="uid://dsw1mjuyehgry"]
+[gd_scene load_steps=57 format=4 uid="uid://dsw1mjuyehgry"]
 
 [ext_resource type="Script" uid="uid://ba685cgyl4in3" path="res://core/scripts/infantry_sqaud.gd" id="1_0h55r"]
 [ext_resource type="Script" uid="uid://c1wddsm427l3n" path="res://core/scripts/CombatUnitData.gd" id="2_a5ipo"]
-[ext_resource type="Texture2D" uid="uid://b8y4mg8rb8ymf" path="res://data/assets/icons/Infantry.png" id="3_lsj27"]
+[ext_resource type="Texture2D" uid="uid://csh4bb0hao2d2" path="res://data/assets/icons/Gren.png" id="3_hsipc"]
 [ext_resource type="Texture2D" uid="uid://bux7qscg5g5c0" path="res://data/assets/icons/unit_selction_icon.png" id="4_bi1ue"]
 [ext_resource type="Script" uid="uid://dotaob5vq2ptd" path="res://core/scripts/muzzle_flash.gd" id="4_hsgtt"]
 [ext_resource type="Texture2D" uid="uid://dk0pxwxi60mpl" path="res://addons/MrMinimal'sVFX/addons/kenney-particles/textures/fire_01.png" id="5_lsj27"]
+[ext_resource type="PackedScene" uid="uid://dxso8u25lsmf4" path="res://scenes/UnitBar.tscn" id="7_hsipc"]
 
 [sub_resource type="Resource" id="Resource_sdxb2"]
 script = ExtResource("2_a5ipo")
-unit_icon = ExtResource("3_lsj27")
+unit_icon = ExtResource("3_hsipc")
 unit_name = "Gren"
 health = 3
 move_speed = 7.5
@@ -8406,3 +8407,6 @@ draw_pass_1 = SubResource("QuadMesh_x6py3")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00388885, 1.85579, 2.26124)
 shape = SubResource("CylinderShape3D_bi1ue")
+
+[node name="UnitBar" parent="." instance=ExtResource("7_hsipc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.268, 0)

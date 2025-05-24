@@ -70,7 +70,7 @@ func _ready():
 
 func _spawn_infantry_clones(count: int):
 	var num_clones = count - 1
-	var spacing = 3.9
+	var base_spacing = 3.0  # Distance from leader to clones
 
 	var container = get_tree().get_current_scene().get_node_or_null("CloneContainer")
 	if container == null:
@@ -81,15 +81,8 @@ func _spawn_infantry_clones(count: int):
 		var clone = infantry_template.duplicate()
 		clone.name = "InfantryClone_%d" % i
 
-		var row = i / 3
-		var col = i % 3
-		
-		# Calculate formation offset relative to leader
-		var offset = Vector3(
-			(col - 1) * spacing + randf_range(-0.5, 0.5),
-			0,
-			-(row + 1) * spacing + randf_range(-0.5, 0.5)
-		)
+		# Calculate formation offset based on geometric patterns
+		var offset = _calculate_formation_offset(i, num_clones, base_spacing)
 		
 		# Store offset for formation maintenance
 		clone.set_meta("formation_offset", offset)
@@ -124,6 +117,115 @@ func _spawn_infantry_clones(count: int):
 			ring.visible = is_selected
 
 		infantry_clones.append(clone)
+
+func _calculate_formation_offset(clone_index: int, total_clones: int, spacing: float) -> Vector3:
+	var offset = Vector3.ZERO
+	
+	match total_clones:
+		1:
+			# Single clone - place side by side with leader
+			offset = Vector3(spacing, 0, 0)  # Right side of leader
+		
+		2:
+			# Two clones - diamond formation with leader at front point
+			var positions = [
+				Vector3(-spacing * 0.7, 0, -spacing * 0.7),  # Back-left
+				Vector3(spacing * 0.7, 0, -spacing * 0.7)    # Back-right
+			]
+			offset = positions[clone_index]
+		
+		3:
+			# Three clones - triangular formation behind leader
+			var positions = [
+				Vector3(-spacing * 0.7, 0, -spacing * 0.7),  # Back-left
+				Vector3(spacing * 0.7, 0, -spacing * 0.7),   # Back-right
+				Vector3(0, 0, -spacing)                       # Directly behind
+			]
+			offset = positions[clone_index]
+		
+		4:
+			# Four clones - square formation around leader
+			var positions = [
+				Vector3(-spacing, 0, 0),    # Left
+				Vector3(spacing, 0, 0),     # Right
+				Vector3(0, 0, spacing),     # Front
+				Vector3(0, 0, -spacing)     # Back
+			]
+			offset = positions[clone_index]
+		
+		5:
+			# Five clones - pentagon formation around leader
+			var angle_step = 2 * PI / 5
+			var angle = clone_index * angle_step
+			offset = Vector3(
+				sin(angle) * spacing,
+				0,
+				cos(angle) * spacing
+			)
+		
+		6:
+			# Six clones - hexagon formation around leader
+			var angle_step = 2 * PI / 6
+			var angle = clone_index * angle_step
+			offset = Vector3(
+				sin(angle) * spacing,
+				0,
+				cos(angle) * spacing
+			)
+		
+		7:
+			# Seven clones - hexagon + 1 behind leader
+			if clone_index < 6:
+				# First 6 in hexagon
+				var angle_step = 2 * PI / 6
+				var angle = clone_index * angle_step
+				offset = Vector3(
+					sin(angle) * spacing,
+					0,
+					cos(angle) * spacing
+				)
+			else:
+				# 7th clone directly behind
+				offset = Vector3(0, 0, -spacing * 1.5)
+		
+		8:
+			# Eight clones - octagon formation around leader
+			var angle_step = 2 * PI / 8
+			var angle = clone_index * angle_step
+			offset = Vector3(
+				sin(angle) * spacing,
+				0,
+				cos(angle) * spacing
+			)
+		
+		_:
+			# For larger squads (9+), use double ring formation
+			if clone_index < 6:
+				# Inner ring - hexagon
+				var angle_step = 2 * PI / 6
+				var angle = clone_index * angle_step
+				offset = Vector3(
+					sin(angle) * spacing * 0.7,
+					0,
+					cos(angle) * spacing * 0.7
+				)
+			else:
+				# Outer ring - remaining clones in larger circle
+				var remaining_clones = total_clones - 6
+				var outer_index = clone_index - 6
+				var angle_step = 2 * PI / remaining_clones
+				var angle = outer_index * angle_step
+				offset = Vector3(
+					sin(angle) * spacing * 1.3,
+					0,
+					cos(angle) * spacing * 1.3
+				)
+	
+	# Add slight random variation to prevent perfect overlap
+	offset.x += randf_range(-0.2, 0.2)
+	offset.z += randf_range(-0.2, 0.2)
+	
+	return offset
 
 func _physics_process(delta):
 	# Don't process if we're dead
