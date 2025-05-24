@@ -71,7 +71,7 @@ transform = Transform3D(0.445, 0, 0, 0, -1.94516e-08, 0.445, 0, -0.445, -1.94516
 shape = SubResource("BoxShape3D_tu0pt")
 
 [node name="CameraRig" parent="." instance=ExtResource("1_15ed5")]
-transform = Transform3D(1, 0, 0, 0, 0.995147, -0.0983994, 0, 0.0983994, 0.995147, -5.02558, 2.36729, 4.77977)
+transform = Transform3D(1, 0, 0, 0, 0.995147, -0.0983994, 0, 0.0983994, 0.995147, 2.38965, 2.36729, 4.77977)
 
 [node name="SelectionManager" parent="." instance=ExtResource("2_q8osp")]
 

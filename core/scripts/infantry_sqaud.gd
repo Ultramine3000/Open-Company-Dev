@@ -62,6 +62,7 @@ func _ready():
 
 	if stats:
 		_spawn_infantry_clones(stats.squad_size)
+		#initialize health data
 		total_health = stats.squad_size*stats.health
 		current_health = float(total_health)
 	else:
@@ -765,7 +766,8 @@ func _handle_squad_death():
 			var clone_is_dead = clone.get_meta("is_dead", false)
 			if not clone_is_dead:  # Only kill clones that aren't already dead
 				_handle_clone_death(clone)
-	
+
+	#Permanently delete unit icon + health bar	
 	unit_bar.delete_unit_bar()
 	
 	# Remove from combat groups so enemies don't target this dead squad
