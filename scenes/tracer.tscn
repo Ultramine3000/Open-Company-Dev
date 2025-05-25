@@ -1,4 +1,6 @@
-[gd_scene load_steps=5 format=3 uid="uid://7w17jcyqrmsb"]
+[gd_scene load_steps=6 format=3 uid="uid://7w17jcyqrmsb"]
+
+[ext_resource type="Script" uid="uid://4hqtowrafy7c" path="res://core/scripts/tracer.gd" id="1_o68uk"]
 
 [sub_resource type="Gradient" id="Gradient_s55bn"]
 offsets = PackedFloat32Array(0, 0.272727, 0.818182, 1)
@@ -24,13 +26,14 @@ section_length = 0.305
 section_segments = 1
 
 [node name="tracer" type="Node3D"]
+script = ExtResource("1_o68uk")
 
 [node name="tracer" type="MeshInstance3D" parent="."]
 transform = Transform3D(-8.52992, -0.0373686, 1.63343e-09, 0, -3.72858e-07, -8.53, 0.0373686, -8.52992, 3.72855e-07, 0, 2.42748, -2.71899)
 mesh = SubResource("RibbonTrailMesh_tb5kq")
 
-[node name="RayCast3D" type="RayCast3D" parent="tracer"]
-transform = Transform3D(0.478469, 0, 0, 0, 0.478299, -0.0127669, 0, 0.0127669, 0.478299, 0.000586646, 0.157839, -0.00679806)
+[node name="RayCast3D" type="RayCast3D" parent="."]
+transform = Transform3D(-4.0813, -0.0178734, 0.000477082, 0, -0.108902, -4.07989, 0.0178797, -4.07985, 0.108901, -0.0109023, 2.21455, -4.06532)
 target_position = Vector3(0, 0.465, 0)
 collision_mask = 255
 collide_with_areas = true

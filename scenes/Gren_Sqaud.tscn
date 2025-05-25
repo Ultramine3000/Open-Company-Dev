@@ -18,9 +18,9 @@ cost = 0
 weapon_type = ""
 abilities = Array[String]([])
 squad_size = 4
-short_range_accuracy = 0.4
-medium_range_accuracy = 0.5
-long_range_accuracy = 0.78
+short_range_accuracy = 0.38
+medium_range_accuracy = 0.55
+long_range_accuracy = 0.84
 vision_range = 50.0
 metadata/_custom_type_script = "uid://c1wddsm427l3n"
 
@@ -8389,6 +8389,7 @@ autoplay = "Idle_1"
 playback_default_blend_time = 0.15
 
 [node name="NavigationAgent3D" type="NavigationAgent3D" parent="Infantry"]
+avoidance_enabled = true
 
 [node name="Muzzle_Flash" type="Node3D" parent="Infantry"]
 transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -0.281957, 2.91543, 2.05047)
@@ -8405,8 +8406,11 @@ process_material = SubResource("ParticleProcessMaterial_ftsig")
 draw_pass_1 = SubResource("QuadMesh_x6py3")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00388885, 1.85579, 2.26124)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.004, 1.856, 0)
 shape = SubResource("CylinderShape3D_bi1ue")
 
+[node name="Vision" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.24535, 0)
+
 [node name="UnitBar" parent="." instance=ExtResource("7_hsipc")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.268, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6.43024, 0)

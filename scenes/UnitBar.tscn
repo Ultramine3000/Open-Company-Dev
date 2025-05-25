@@ -10,10 +10,14 @@ center_offset = Vector3(0, 0.65, 0)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_8dryn"]
 albedo_texture = SubResource("PlaceholderTexture2D_iggwg")
+disable_receive_shadows = true
 billboard_mode = 1
+billboard_keep_scale = true
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3fbb0"]
+disable_receive_shadows = true
 billboard_mode = 1
+billboard_keep_scale = true
 
 [sub_resource type="QuadMesh" id="QuadMesh_3fbb0"]
 material = SubResource("StandardMaterial3D_3fbb0")
@@ -22,10 +26,11 @@ material = SubResource("StandardMaterial3D_3fbb0")
 script = ExtResource("1_3fbb0")
 
 [node name="HealthBar" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00176835, -0.00223184, -0.000422955)
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0.00176835, -0.00223184, -0.000422955)
 mesh = SubResource("QuadMesh_r2y8n")
 skeleton = NodePath("../UnitIcon")
 surface_material_override/0 = SubResource("StandardMaterial3D_8dryn")
 
 [node name="UnitIcon" type="MeshInstance3D" parent="."]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0)
 mesh = SubResource("QuadMesh_3fbb0")

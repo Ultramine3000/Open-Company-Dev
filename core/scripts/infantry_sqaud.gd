@@ -70,7 +70,7 @@ func _ready():
 
 func _spawn_infantry_clones(count: int):
 	var num_clones = count - 1
-	var base_spacing = 3.0  # Distance from leader to clones
+	var base_spacing = 3.5  # Distance from leader to clones
 
 	var container = get_tree().get_current_scene().get_node_or_null("CloneContainer")
 	if container == null:
@@ -502,49 +502,113 @@ func _check_for_nearby_enemies():
 	var closest_enemy = null
 	var closest_distance = INF
 	
-	# Use the vision_range from stats instead of hardcoded 20.0
 	var detection_range = stats.vision_range if stats and stats.get("vision_range") != null else 20.0
 
 	for node in get_tree().get_nodes_in_group(opposing_group):
 		if not node is CharacterBody3D or not is_instance_valid(node):
 			continue
-		# Don't target dead enemies
 		if node.has_method("is_dead") and node.is_dead:
 			continue
 		var dist = global_transform.origin.distance_to(node.global_transform.origin)
 		if dist <= detection_range and dist < closest_distance:
-			closest_enemy = node
-			closest_distance = dist
+			if _has_line_of_sight(self, node):  # 🔁 Only set if LoS exists
+				closest_enemy = node
+				closest_distance = dist
 
 	if closest_enemy:
 		if not enemy_in_range or current_enemy != closest_enemy:
 			enemy_in_range = true
 			current_enemy = closest_enemy
-			
-			# Begin aiming immediately upon detecting enemy
+
 			if anim_player and anim_player.has_animation("Aim"):
 				anim_player.play("Aim")
 				
-			# Make clones aim immediately too
-			for clone in infantry_clones.duplicate():  # Use duplicate to avoid modification during iteration
+			for clone in infantry_clones.duplicate():
+				if is_instance_valid(clone) and not clone.is_queued_for_deletion():
+					var clone_is_dead = clone.get_meta("is_dead", false)
+					if not clone_is_dead and _has_line_of_sight(clone, closest_enemy):  # 🔁 Only aim if LoS
+						_clone_play_animation(clone, "Aim")
+	else:
+		if enemy_in_range:
+			enemy_in_range = false
+			current_enemy = null
+			
+			if anim_player:
+				anim_player.play(_get_random_idle_animation())
+				
+			for clone in infantry_clones.duplicate():
 				if is_instance_valid(clone) and not clone.is_queued_for_deletion():
 					var clone_is_dead = clone.get_meta("is_dead", false)
 					if not clone_is_dead:
-						_clone_play_animation(clone, "Aim")
-	elif enemy_in_range:
-		enemy_in_range = false
-		current_enemy = null
-		
-		# Return to idle when no enemies are in range
-		if anim_player:
-			anim_player.play(_get_random_idle_animation())
-			
-		for clone in infantry_clones.duplicate():  # Use duplicate to avoid modification during iteration
-			if is_instance_valid(clone) and not clone.is_queued_for_deletion():
-				var clone_is_dead = clone.get_meta("is_dead", false)
-				if not clone_is_dead:
-					_clone_play_animation(clone, _get_random_idle_animation())
+						_clone_play_animation(clone, _get_random_idle_animation())
 
+
+# Check if a unit (leader or clone) has line of sight to the target
+func _has_line_of_sight(unit: Node3D, target: Node3D) -> bool:
+	if not is_instance_valid(unit) or not is_instance_valid(target):
+		return false
+	
+	# Look for Vision node - check different possible locations
+	var vision_node = null
+	
+	# First try direct child of the unit
+	vision_node = unit.get_node_or_null("Vision")
+	
+	# If not found, try inside Infantry subfolder (for leader)
+	if not vision_node and unit == self:
+		vision_node = infantry_template.get_node_or_null("Vision")
+	
+	# If still no Vision node found, use unit's global position as fallback
+	var raycast_origin: Vector3
+	if vision_node:
+		raycast_origin = vision_node.global_transform.origin
+	else:
+		# Fallback: use unit position with slight height offset for "eye level"
+		raycast_origin = unit.global_transform.origin + Vector3(0, 1.8, 0)
+	
+	# Target the center mass of the enemy (add height offset)
+	var raycast_target = target.global_transform.origin + Vector3(0, 1.0, 0)
+	
+	# Calculate direction and distance
+	var direction = (raycast_target - raycast_origin).normalized()
+	var distance = raycast_origin.distance_to(raycast_target)
+	
+	# Create raycast query
+	var space_state = get_world_3d().direct_space_state
+	var query = PhysicsRayQueryParameters3D.create(raycast_origin, raycast_target)
+	
+	# Exclude self and friendly units from blocking line of sight
+	var exclusions = [unit]  # Always exclude the firing unit
+	
+	# Exclude all friendly squad members
+	exclusions.append(self)  # Exclude leader
+	for clone in infantry_clones:
+		if is_instance_valid(clone):
+			exclusions.append(clone)
+	
+	# Exclude other friendly squads in the same group
+	var friendly_group = "allies" if is_in_group("allies") else "axis"
+	for friendly_unit in get_tree().get_nodes_in_group(friendly_group):
+		if friendly_unit != self and is_instance_valid(friendly_unit):
+			exclusions.append(friendly_unit)
+	
+	query.exclude = exclusions
+	
+	# Perform the raycast
+	var result = space_state.intersect_ray(query)
+	
+	# If nothing hit, line of sight is clear
+	if result.is_empty():
+		return true
+	
+	# If we hit the target enemy, line of sight is clear
+	if result.get("collider") == target:
+		return true
+	
+	# If we hit something else, line of sight is blocked
+	return false
+
+# Modified _perform_attack function with line of sight checks
 func _perform_attack():
 	if not current_enemy or not is_instance_valid(current_enemy) or is_dead:
 		is_attacking = false
@@ -561,18 +625,28 @@ func _perform_attack():
 			var target_rotation = atan2(direction_to_enemy.x, direction_to_enemy.z)
 			rotation.y = lerp_angle(rotation.y, target_rotation, 0.5)  # Quick rotation for attack
 
-	# Aim anims for leader
-	if anim_player and anim_player.has_animation("Aim"):
+	# Check if leader has line of sight before aiming
+	var leader_can_fire = _has_line_of_sight(self, current_enemy)
+	
+	# Aim anims for leader (only if can fire)
+	if leader_can_fire and anim_player and anim_player.has_animation("Aim"):
 		anim_player.play("Aim")
 
-	# Make a safe copy of the clones array to avoid modification during iteration
+	# Make a safe copy of the clones array and check line of sight for each
 	var valid_clones = []
+	var clones_can_fire = []
+	
 	for clone in infantry_clones:
 		if is_instance_valid(clone) and not clone.is_queued_for_deletion():
 			var clone_is_dead = clone.get_meta("is_dead", false)
 			if not clone_is_dead:
 				valid_clones.append(clone)
-				_clone_play_animation(clone, "Aim")
+				var can_fire = _has_line_of_sight(clone, current_enemy)
+				clones_can_fire.append(can_fire)
+				
+				# Only play aim animation if clone can fire
+				if can_fire:
+					_clone_play_animation(clone, "Aim")
 
 	# CRITICAL FIX: Store attack state before await to check if squad died during wait
 	var attack_id = randi()  # Generate unique attack ID
@@ -585,16 +659,16 @@ func _perform_attack():
 		is_attacking = false
 		return
 
-	# Fire anims for leader
-	if anim_player and anim_player.has_animation("Fire") and is_instance_valid(current_enemy):
+	# Fire anims for leader (only if can fire)
+	if leader_can_fire and anim_player and anim_player.has_animation("Fire") and is_instance_valid(current_enemy):
 		anim_player.play("Fire")
 
-	# Get current living squad strength for damage calculation
-	var squad_strength = get_living_squad_size()
-	
-	print("Squad firing with ", squad_strength, " living members")
+	# Calculate squad strength based on units that can actually fire
+	var firing_squad_strength = 0
+	if leader_can_fire and stats.health > 0:
+		firing_squad_strength += 1
 
-	# Fire anims for clones (if any) - more staggered timing
+	# Fire anims for clones that can fire - more staggered timing
 	for i in range(valid_clones.size()):
 		# Check if squad died during the firing sequence OR attack is outdated
 		if is_dead or get_meta("current_attack_id", -1) != attack_id:
@@ -602,6 +676,11 @@ func _perform_attack():
 			return
 			
 		var clone = valid_clones[i]
+		var can_fire = clones_can_fire[i]
+		
+		if not can_fire:
+			continue
+			
 		if not is_instance_valid(clone) or clone.is_queued_for_deletion():
 			continue
 			
@@ -609,6 +688,8 @@ func _perform_attack():
 		var clone_is_dead = clone.get_meta("is_dead", false)
 		if clone_is_dead:
 			continue
+			
+		firing_squad_strength += 1
 			
 		# Increased stagger time and made it more varied
 		var stagger_time = 0.15 + (0.1 * (i % 4)) + randf_range(0.0, 0.1)
@@ -625,8 +706,8 @@ func _perform_attack():
 		if not clone_is_dead:
 			_clone_play_animation(clone, "Fire")
 
-	# Combat logic only performed by leader
-	if current_enemy and is_instance_valid(current_enemy):
+	# Combat logic only performed by leader, but damage based on units that can actually fire
+	if current_enemy and is_instance_valid(current_enemy) and firing_squad_strength > 0:
 		var distance = global_transform.origin.distance_to(current_enemy.global_transform.origin)
 		var accuracy = 0.0
 		if distance <= 10.0:
@@ -636,9 +717,8 @@ func _perform_attack():
 		else:
 			accuracy = stats.long_range_accuracy
 
-		# Each squad member fires individually with reduced damage per shot
-		# This prevents entire squads from being wiped out in one volley
-		for i in range(squad_strength):
+		# Only units with line of sight can fire
+		for i in range(firing_squad_strength):
 			if randf() <= accuracy:
 				# Each successful hit only deals 1 damage
 				if current_enemy.has_method("take_damage"):
@@ -659,14 +739,17 @@ func _perform_attack():
 	
 	# Make sure we're still in combat stance after attack finishes (if still alive and enemy present)
 	if is_instance_valid(current_enemy) and enemy_in_range and stats.health > 0:
-		if anim_player and anim_player.has_animation("Aim"):
+		# Only leader aims if they can fire
+		if leader_can_fire and anim_player and anim_player.has_animation("Aim"):
 			anim_player.play("Aim")
 			
-		# Only update clone animations if we still have clones
-		for clone in infantry_clones:
+		# Only clones that can fire should aim
+		for i in range(valid_clones.size()):
+			var clone = valid_clones[i]
 			if is_instance_valid(clone) and not clone.is_queued_for_deletion():
 				var clone_is_dead = clone.get_meta("is_dead", false)
-				if not clone_is_dead:
+				var can_fire = _has_line_of_sight(clone, current_enemy)  # Re-check in case situation changed
+				if not clone_is_dead and can_fire:
 					_clone_play_animation(clone, "Aim")
 	
 	is_attacking = false
@@ -730,7 +813,7 @@ func _play_death_animation(unit: Node3D) -> void:
 		anim_player_node = unit.get_node_or_null("AnimationPlayer")
 	
 	if not anim_player_node:
-		print("No animation player found for death animation")
+		push_error("No animation player found for death animation")
 		return
 	
 	# CRITICAL FIX: Force stop any current animation and immediately clear animation queue
@@ -740,30 +823,23 @@ func _play_death_animation(unit: Node3D) -> void:
 	# Wait one frame to ensure the stop took effect
 	await get_tree().process_frame
 	
-	print("Stopped current animation, playing death animation")
-	
 	var death_anim = _get_random_death_animation()
-	print("Selected death animation: ", death_anim)
 	
 	# Check if the animation exists, fallback to others if not
 	if anim_player_node.has_animation(death_anim):
 		anim_player_node.play(death_anim)
-		print("Playing death animation: ", death_anim)
 	elif anim_player_node.has_animation("Death_1"):
 		anim_player_node.play("Death_1")
 		death_anim = "Death_1"
-		print("Fallback to Death_1")
 	elif anim_player_node.has_animation("Death_2"):
 		anim_player_node.play("Death_2")
 		death_anim = "Death_2"
-		print("Fallback to Death_2")
 	elif anim_player_node.has_animation("Death_3"):
 		anim_player_node.play("Death_3")
 		death_anim = "Death_3"
-		print("Fallback to Death_3")
 	else:
 		# No death animation available
-		print("No death animations available!")
+		push_error("No death animations available!")
 
 func take_damage(amount: int):
 	# Don't take damage if already dead
@@ -772,7 +848,6 @@ func take_damage(amount: int):
 		
 	# Process each point of damage individually to simulate realistic combat
 	for damage_point in range(amount):
-		print(range(amount))
 		# Check if squad is already dead
 		if is_dead:
 			break
@@ -795,17 +870,14 @@ func take_damage(amount: int):
 			hp -= 1
 			clone.set_meta("health", hp)
 			current_health -= 1
-			print(stats.unit_name, " clone took 1 damage, health now: ", hp, " total squad health now: ", current_health)
 			unit_bar.set_health_bar(current_health / total_health)
 			if hp <= 0:
-				print("Clone died, removing from squad")
 				infantry_clones.erase(clone)
 				_handle_clone_death(clone)
 		elif stats.health > 0:
 			# Only target leader when no clones remain
 			stats.health -= 1
 			current_health -= 1
-			print(stats.unit_name, " leader took 1 damage (no clones left), health now: ", stats.health, " total squad health now: ", current_health)
 			unit_bar.set_health_bar(current_health / total_health)
 			if stats.health <= 0:
 				# Leader is dead, trigger death sequence
@@ -840,8 +912,6 @@ func _handle_clone_death(clone: Node3D):
 
 # New method to handle squad death without destroying the squad
 func _handle_squad_death():
-	print("Squad is dead - disabling functionality but keeping unit")
-	
 	# IMMEDIATELY stop any ongoing attack sequence and invalidate future ones
 	is_attacking = false
 	set_meta("current_attack_id", -1)  # Invalidate any ongoing attack sequences
@@ -877,7 +947,3 @@ func _handle_squad_death():
 		remove_from_group("allies")
 	if is_in_group("axis"):
 		remove_from_group("axis")
-	
-	print("Squad death sequence complete - unit will remain but be non-functional")
-#
-#func _get_current_total_health():

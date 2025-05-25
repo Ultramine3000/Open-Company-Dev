@@ -77,7 +77,7 @@ transform = Transform3D(1, 0, 0, 0, 0.995147, -0.0983994, 0, 0.0983994, 0.995147
 [node name="CloneContainer" type="Node3D" parent="."]
 
 [node name="Gren_Sqaud" parent="." instance=ExtResource("3_e724j")]
-transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -29.0325, 0.21286, 5.21787)
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -11.6973, 0.21286, 4.83911)
 
 [node name="Tirailleur_Sqaud" parent="." instance=ExtResource("4_h66ac")]
-transform = Transform3D(0.211632, 0, -0.97735, 0, 1, 0, 0.97735, 0, 0.211632, 21.9151, 0.292918, 0)
+transform = Transform3D(0.0825648, 0, -0.996586, 0, 1, 0, 0.996586, 0, 0.0825648, 32.7975, 0.292918, -4.23319)
