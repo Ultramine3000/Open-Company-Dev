@@ -1,11 +1,19 @@
-# ChildRoot.gd
+# ChildRoot.gd - Simplified version without get() method issues
 extends Node3D
+
 @onready var _mesh : MeshInstance3D = $UnitIcon
 @onready var health_bar : MeshInstance3D = $HealthBar
+
+# Add squad ownership tracking
+var squad_owner: Node = null
+var is_being_deleted: bool = false
 
 func _ready() -> void:
 	# Automatically set the unit icon from parent's CombatUnitData
 	setup_unit_icon_from_parent()
+	
+	# Set the squad owner to prevent cross-squad interference
+	squad_owner = get_parent()
 
 func setup_unit_icon_from_parent() -> void:
 	# Get parent node and check if it has CombatUnitData
@@ -17,13 +25,16 @@ func setup_unit_icon_from_parent() -> void:
 	# Try to get CombatUnitData from parent
 	var combat_data = null
 	
-	# Method 1: If CombatUnitData is a direct property/variable
-	if "combat_unit_data" in parent_node:
+	# Method 1: Check for 'stats' property (as used in your squad script)
+	if "stats" in parent_node:
+		combat_data = parent_node.stats
+	# Method 2: If CombatUnitData is a direct property/variable
+	elif "combat_unit_data" in parent_node:
 		combat_data = parent_node.combat_unit_data
-	# Method 2: If CombatUnitData is a child node
+	# Method 3: If CombatUnitData is a child node
 	elif parent_node.has_node("CombatUnitData"):
 		combat_data = parent_node.get_node("CombatUnitData")
-	# Method 3: If parent has a getter method
+	# Method 4: If parent has a getter method
 	elif parent_node.has_method("get_combat_unit_data"):
 		combat_data = parent_node.get_combat_unit_data()
 	
@@ -79,8 +90,18 @@ func set_albedo_texture(tex : Texture2D) -> void:
 	std_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	std_mat.flags_transparent = true
 	std_mat.albedo_color.a = 1.0  # You can adjust this value (0.0-1.0) for overall transparency
-	
+
 func set_health_bar(health_percent : float) -> void:
+	# Don't update if being deleted
+	if is_being_deleted:
+		return
+		
+	# Verify this request is coming from the correct squad owner
+	if squad_owner and is_instance_valid(squad_owner):
+		# Check if squad owner is dead using direct property access
+		if "is_dead" in squad_owner and squad_owner.is_dead:
+			return  # Don't update health bar for dead squads
+	
 	# Ensure health bar mesh is unique 
 	var new_mesh := health_bar.mesh.duplicate()
 	# Adjust bar width (range 0-1)
@@ -88,7 +109,36 @@ func set_health_bar(health_percent : float) -> void:
 	# Ensure bar is always left justified
 	new_mesh.center_offset.x = (-1+health_percent)/2
 	health_bar.mesh = new_mesh
-	
+
 func delete_unit_bar() -> void:
-	# delete entire unit icon (for when unit dies)
+	# Prevent multiple deletion calls
+	if is_being_deleted:
+		return
+		
+	# Verify this deletion request is coming from the correct squad owner
+	if squad_owner and is_instance_valid(squad_owner):
+		# Only delete if the squad owner is actually dead
+		var owner_is_dead = false
+		
+		if squad_owner.has_method("is_squad_dead"):
+			owner_is_dead = squad_owner.is_squad_dead()
+		elif "is_dead" in squad_owner:
+			owner_is_dead = squad_owner.is_dead
+		
+		if not owner_is_dead:
+			push_warning("delete_unit_bar called but squad owner is not dead!")
+			return
+	
+	# Mark as being deleted to prevent further operations
+	is_being_deleted = true
+	
+	# Properly remove the unit bar
 	visible = false
+	
+	# Disable processing to prevent any further operations
+	set_process(false)
+	set_physics_process(false)
+
+# Simple ownership verification
+func is_owned_by(node: Node) -> bool:
+	return squad_owner == node and is_instance_valid(node)

@@ -15,13 +15,13 @@ unit_name = "Tirailleur"
 health = 5
 move_speed = 7.0
 cost = 0
-weapon_type = ""
+weapon_type = "MAS-36"
 abilities = Array[String]([])
 squad_size = 5
-short_range_accuracy = 0.75
-medium_range_accuracy = 0.4
-long_range_accuracy = 0.32
-vision_range = 50.0
+short_range_accuracy = 0.8
+medium_range_accuracy = 0.7
+long_range_accuracy = 0.6
+vision_range = 45.0
 metadata/_custom_type_script = "uid://c1wddsm427l3n"
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_isxqy"]
@@ -3883,7 +3883,6 @@ tracks/113/keys = PackedFloat32Array(0, 1, 1.44167, 22.106, 4.69616)
 [sub_resource type="Animation" id="Animation_ytd44"]
 resource_name = "Fire"
 length = 1.3
-loop_mode = 1
 tracks/0/type = "position_3d"
 tracks/0/imported = true
 tracks/0/enabled = true
@@ -8441,7 +8440,7 @@ bones/66/rotation = Quaternion(2.75904e-08, -1.09256e-07, 1.16415e-08, 1)
 bones/66/scale = Vector3(1, 1, 1)
 
 [node name="model_4_001" type="BoneAttachment3D" parent="Infantry/Armature/Skeleton3D"]
-transform = Transform3D(25.1403, -1.49548, 9.89637, 3.68761, 26.2574, -5.4, -9.30462, 6.36569, 24.599, -22.1681, 6.62803, -345.933)
+transform = Transform3D(25.1403, -1.49548, 9.89637, 3.68761, 26.2574, -5.4, -9.30462, 6.36569, 24.599, -22.1681, 6.62804, -345.933)
 bone_name = "model_4.001"
 bone_idx = 7
 
@@ -8450,7 +8449,7 @@ mesh = SubResource("ArrayMesh_7it8x")
 skeleton = NodePath("")
 
 [node name="french_rifle" type="BoneAttachment3D" parent="Infantry/Armature/Skeleton3D"]
-transform = Transform3D(2.84543, -0.41964, -21.1949, 21.1984, -0.111001, 2.8481, -0.165869, -21.3848, 0.401132, -25.6954, 26.4945, -281.596)
+transform = Transform3D(2.84544, -0.419657, -21.1949, 21.1984, -0.111003, 2.84811, -0.165878, -21.3848, 0.401145, -25.6954, 26.4945, -281.596)
 bone_name = "french_rifle"
 bone_idx = 56
 
@@ -8524,8 +8523,8 @@ draw_pass_1 = SubResource("QuadMesh_44bd3")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.004, 1.856, 0)
 shape = SubResource("CylinderShape3D_v08oi")
 
-[node name="Vision" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.24535, 0)
-
 [node name="UnitBar" parent="." instance=ExtResource("7_v08oi")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6.43024, 0)
+
+[node name="Vision" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.25981, 0)

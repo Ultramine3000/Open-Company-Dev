@@ -1,7 +1,6 @@
 extends CharacterBody3D
 
 @export var stats: CombatUnitData
-#@export var child_path : NodePath
 @onready var infantry_template: Node3D = $Infantry
 @onready var nav_agent: NavigationAgent3D = $Infantry/NavigationAgent3D
 @onready var anim_player: AnimationPlayer = $Infantry/AnimationPlayer
@@ -16,12 +15,14 @@ var attack_timer := 0.0
 var attack_interval := 2.0  # time between shots
 
 var total_health : int 
-
 var current_health : float 
-
 var is_dead := false  # At the top of the script
 
 var infantry_clones: Array = []
+
+# Add unique squad identifier
+var squad_unique_id: String = ""
+
 var is_selected: bool = false:
 	set(value):
 		# Don't allow selection if squad is dead
@@ -44,11 +45,33 @@ var formation_right: Vector3
 var last_movement_rotation: float = 0.0
 
 func _ready():
+	# Generate unique ID for this squad instance
+	squad_unique_id = "Squad_" + str(get_instance_id()) + "_" + str(Time.get_ticks_msec())
+	
+	# CRITICAL FIX: Ensure each squad has its own unique stats resource
+	if stats:
+		print("SQUAD CREATED: ", squad_unique_id, " with stats ID: ", stats.get_instance_id())
+		
+		# Always duplicate the stats resource to prevent cross-squad interference
+		var original_stats_id = stats.get_instance_id()
+		stats = stats.duplicate()
+		stats.resource_local_to_scene = true
+		
+		print("Stats duplicated from ID ", original_stats_id, " to new ID ", stats.get_instance_id())
+	else:
+		push_error("No stats assigned to squad: ", squad_unique_id)
+		return
 	
 	if not unit_bar: 
-		push_error("Unit Bar Scene missing")
+		push_error("Unit Bar Scene missing for ", squad_unique_id)
 		return
-	unit_bar.set_albedo_texture(stats.unit_icon)
+	
+	# Set up unit bar with proper ownership
+	if unit_bar and is_instance_valid(unit_bar):
+		# Set ownership to prevent cross-squad interference
+		unit_bar.squad_owner = self
+		unit_bar.name = "UnitBar_" + squad_unique_id  # Make unit bar name unique
+		unit_bar.set_albedo_texture(stats.unit_icon)
 		
 	if anim_player:
 		anim_player.play(_get_random_idle_animation())
@@ -65,6 +88,7 @@ func _ready():
 		#initialize health data
 		total_health = stats.squad_size*stats.health
 		current_health = float(total_health)
+		print("Squad ", squad_unique_id, " initialized with total health: ", total_health)
 	else:
 		push_warning("CombatUnitData 'stats' not assigned!")
 
@@ -79,13 +103,16 @@ func _spawn_infantry_clones(count: int):
 
 	for i in num_clones:
 		var clone = infantry_template.duplicate()
-		clone.name = "InfantryClone_%d" % i
+		# Make clone names unique per squad
+		clone.name = "InfantryClone_%s_%d" % [squad_unique_id, i]
 
 		# Calculate formation offset based on geometric patterns
 		var offset = _calculate_formation_offset(i, num_clones, base_spacing)
 		
 		# Store offset for formation maintenance
 		clone.set_meta("formation_offset", offset)
+		clone.set_meta("squad_owner", self)  # Track which squad owns this clone
+		clone.set_meta("squad_id", squad_unique_id)  # Unique squad identifier
 		
 		# Use the same health value for all squad members from stats
 		clone.set_meta("health", stats.health)  # Initialize health from stats
@@ -236,6 +263,7 @@ func _physics_process(delta):
 	if stats.health <= 0:
 		if not is_dead:  # Only trigger death sequence once
 			is_dead = true
+			print("TRIGGERING DEATH for squad: ", squad_unique_id, " with stats ID: ", stats.get_instance_id())
 			_handle_squad_death()
 		return
 		
@@ -248,6 +276,10 @@ func _physics_process(delta):
 	var valid_clones = []
 	for clone in infantry_clones:
 		if is_instance_valid(clone) and not clone.is_queued_for_deletion():
+			# Verify clone belongs to this squad
+			var clone_squad_id = clone.get_meta("squad_id", "")
+			if clone_squad_id != squad_unique_id:
+				continue  # Skip clones that don't belong to this squad
 			# Also check if clone is dead
 			var clone_is_dead = clone.get_meta("is_dead", false)
 			if not clone_is_dead:
@@ -325,6 +357,11 @@ func _clone_play_animation(clone: Node3D, anim_name: String):
 	if clone == null or not is_instance_valid(clone) or clone.is_queued_for_deletion():
 		return
 	
+	# Verify clone belongs to this squad
+	var clone_squad_id = clone.get_meta("squad_id", "")
+	if clone_squad_id != squad_unique_id:
+		return  # Don't control clones from other squads
+	
 	# Check if this clone is dead
 	var clone_is_dead = clone.get_meta("is_dead", false)
 	if clone_is_dead:
@@ -339,6 +376,10 @@ func _process_clone_movement(delta):
 	var valid_clones = []
 	for clone in infantry_clones:
 		if is_instance_valid(clone) and not clone.is_queued_for_deletion():
+			# Verify clone belongs to this squad
+			var clone_squad_id = clone.get_meta("squad_id", "")
+			if clone_squad_id != squad_unique_id:
+				continue  # Skip clones from other squads
 			if not clone.get_meta("is_dead", false):
 				valid_clones.append(clone)
 
@@ -421,7 +462,6 @@ func _process_clone_movement(delta):
 		new_pos.y = global_transform.origin.y + 0.1
 		clone.global_transform.origin = new_pos
 
-
 func move_to_position(pos: Vector3):
 	# Don't accept move commands if dead
 	if is_dead:
@@ -455,6 +495,10 @@ func move_to_position(pos: Vector3):
 		# Apply movement animation to clones as well
 		for clone in infantry_clones:
 			if is_instance_valid(clone) and not clone.is_queued_for_deletion():
+				# Verify clone belongs to this squad
+				var clone_squad_id = clone.get_meta("squad_id", "")
+				if clone_squad_id != squad_unique_id:
+					continue
 				var clone_is_dead = clone.get_meta("is_dead", false)
 				if not clone_is_dead:
 					var clone_anim = clone.get_node_or_null("AnimationPlayer")
@@ -481,7 +525,7 @@ func _check_for_nearby_enemies():
 			continue
 		var dist = global_transform.origin.distance_to(node.global_transform.origin)
 		if dist <= detection_range and dist < closest_distance:
-			if _has_line_of_sight(self, node):  # 🔁 Only set if LoS exists
+			if _has_line_of_sight(self, node):  # Only set if LoS exists
 				closest_enemy = node
 				closest_distance = dist
 
@@ -495,8 +539,12 @@ func _check_for_nearby_enemies():
 				
 			for clone in infantry_clones.duplicate():
 				if is_instance_valid(clone) and not clone.is_queued_for_deletion():
+					# Verify clone belongs to this squad
+					var clone_squad_id = clone.get_meta("squad_id", "")
+					if clone_squad_id != squad_unique_id:
+						continue
 					var clone_is_dead = clone.get_meta("is_dead", false)
-					if not clone_is_dead and _has_line_of_sight(clone, closest_enemy):  # 🔁 Only aim if LoS
+					if not clone_is_dead and _has_line_of_sight(clone, closest_enemy):  # Only aim if LoS
 						_clone_play_animation(clone, "Aim")
 	else:
 		if enemy_in_range:
@@ -508,10 +556,13 @@ func _check_for_nearby_enemies():
 				
 			for clone in infantry_clones.duplicate():
 				if is_instance_valid(clone) and not clone.is_queued_for_deletion():
+					# Verify clone belongs to this squad
+					var clone_squad_id = clone.get_meta("squad_id", "")
+					if clone_squad_id != squad_unique_id:
+						continue
 					var clone_is_dead = clone.get_meta("is_dead", false)
 					if not clone_is_dead:
 						_clone_play_animation(clone, _get_random_idle_animation())
-
 
 # Check if a unit (leader or clone) has line of sight to the target
 func _has_line_of_sight(unit: Node3D, target: Node3D) -> bool:
@@ -608,6 +659,10 @@ func _perform_attack():
 	
 	for clone in infantry_clones:
 		if is_instance_valid(clone) and not clone.is_queued_for_deletion():
+			# Verify clone belongs to this squad
+			var clone_squad_id = clone.get_meta("squad_id", "")
+			if clone_squad_id != squad_unique_id:
+				continue
 			var clone_is_dead = clone.get_meta("is_dead", false)
 			if not clone_is_dead:
 				valid_clones.append(clone)
@@ -662,7 +717,7 @@ func _perform_attack():
 		firing_squad_strength += 1
 			
 		# Increased stagger time and made it more varied
-		var stagger_time = 0.15 + (0.1 * (i % 4)) + randf_range(0.0, 0.1)
+		var stagger_time = 0.75 + (0.1 * (i % 4)) + randf_range(0.0, 0.1)
 		if stagger_time > 0:
 			await get_tree().create_timer(stagger_time).timeout
 			
@@ -680,9 +735,9 @@ func _perform_attack():
 	if current_enemy and is_instance_valid(current_enemy) and firing_squad_strength > 0:
 		var distance = global_transform.origin.distance_to(current_enemy.global_transform.origin)
 		var accuracy = 0.0
-		if distance <= 10.0:
+		if distance <= 15.0:
 			accuracy = stats.short_range_accuracy
-		elif distance <= 20.0:
+		elif distance <= 30.0:
 			accuracy = stats.medium_range_accuracy
 		else:
 			accuracy = stats.long_range_accuracy
@@ -697,7 +752,7 @@ func _perform_attack():
 					# Check if enemy squad is dead after each shot to avoid overkill
 					if current_enemy.has_method("is_squad_dead") and current_enemy.is_squad_dead():
 						break
-					elif current_enemy.get("is_dead") == true:
+					elif "is_dead" in current_enemy and current_enemy.is_dead:
 						break
 
 	await get_tree().create_timer(0.5).timeout  # Give time for anims to finish
@@ -811,23 +866,127 @@ func _play_death_animation(unit: Node3D) -> void:
 		# No death animation available
 		push_error("No death animations available!")
 
+# Add this function to check if squad is in cover
+func _is_in_cover() -> bool:
+	# Only check for cover if we have an enemy and are in combat
+	if not current_enemy or not is_instance_valid(current_enemy):
+		return false
+	
+	# Find the closest Heavy_Cover node
+	var closest_cover = null
+	var closest_cover_distance = INF
+	var cover_nodes = get_tree().get_nodes_in_group("Heavy_Cover")
+	
+	for cover_node in cover_nodes:
+		if not is_instance_valid(cover_node):
+			continue
+			
+		var distance_to_cover = global_transform.origin.distance_to(cover_node.global_transform.origin)
+		if distance_to_cover < closest_cover_distance:
+			closest_cover = cover_node
+			closest_cover_distance = distance_to_cover
+	
+	# Check if we found cover and are close enough to it
+	if not closest_cover or closest_cover_distance > 5.0:
+		return false
+	
+	# Check if the cover is between us and the enemy
+	var squad_pos = global_transform.origin
+	var enemy_pos = current_enemy.global_transform.origin
+	var cover_pos = closest_cover.global_transform.origin
+	
+	# Calculate distances
+	var squad_to_enemy_distance = squad_pos.distance_to(enemy_pos)
+	var squad_to_cover_distance = squad_pos.distance_to(cover_pos)
+	var cover_to_enemy_distance = cover_pos.distance_to(enemy_pos)
+	
+	# Cover is "between" if squad->cover + cover->enemy ≈ squad->enemy
+	# Allow some tolerance for positioning
+	var total_through_cover = squad_to_cover_distance + cover_to_enemy_distance
+	var tolerance = 3.0  # meters of tolerance
+	
+	# Also check angle - cover should be roughly in the direction of the enemy
+	var squad_to_enemy_vec = (enemy_pos - squad_pos).normalized()
+	var squad_to_cover_vec = (cover_pos - squad_pos).normalized()
+	var angle_dot = squad_to_enemy_vec.dot(squad_to_cover_vec)
+	
+	# Cover is effective if:
+	# 1. It's roughly between squad and enemy (within tolerance)
+	# 2. It's in the general direction of the enemy (dot product > 0.3, roughly 70 degrees)
+	return (total_through_cover <= squad_to_enemy_distance + tolerance) and (angle_dot > 0.3)
+
+# FIXED: Safe health bar update function
+func _safe_update_health_bar():
+	if unit_bar and is_instance_valid(unit_bar):
+		# Verify ownership before updating
+		if "squad_owner" in unit_bar and unit_bar.squad_owner == self:
+			unit_bar.set_health_bar(current_health / total_health)
+		elif unit_bar.has_method("is_owned_by") and unit_bar.is_owned_by(self):
+			unit_bar.set_health_bar(current_health / total_health)
+		else:
+			push_warning("Health bar update rejected - wrong owner for squad: ", squad_unique_id)
+
+# Modified take_damage function with cover system and ownership verification
 func take_damage(amount: int):
-	# Don't take damage if already dead
-	if is_dead:
+	print("DAMAGE RECEIVED: ", amount, " to squad: ", squad_unique_id, " (Stats ID: ", stats.get_instance_id(), ", Health: ", stats.health, ")")
+	
+	# Don't take damage if already dead or if this squad is marked as destroyed
+	if is_dead or is_in_group("dead_squads"):
+		print("DAMAGE IGNORED - Squad already dead: ", squad_unique_id)
 		return
+	
+	# Additional safety check - verify this is a valid squad
+	if not stats or not is_instance_valid(self):
+		print("DAMAGE IGNORED - Invalid squad: ", squad_unique_id)
+		return
+	
+	# Check if squad is in cover and apply damage reduction
+	var effective_damage = amount
+	var in_cover = _is_in_cover()
+	
+	if in_cover:
+		# 50% chance to completely avoid each point of damage when in cover
+		# This simulates bullets hitting cover instead of the squad
+		var avoided_damage = 0
+		for i in range(amount):
+			if randf() < 0.5:  # 50% chance to avoid each damage point
+				avoided_damage += 1
 		
-	# Process each point of damage individually to simulate realistic combat
-	for damage_point in range(amount):
+		effective_damage = amount - avoided_damage
+		
+		# Optional: Add visual feedback for cover
+		if avoided_damage > 0:
+			print("Squad taking cover! ", avoided_damage, " damage avoided, ", effective_damage, " damage taken")
+		else:
+			print("Squad in cover but took full damage this time!")
+	
+	# Process each point of effective damage individually
+	for damage_point in range(effective_damage):
 		# Check if squad is already dead
 		if is_dead:
+			print("Squad died during damage processing: ", squad_unique_id)
 			break
 			
 		# Get current valid clones for this damage point
 		var valid_clones = []
 		for clone in infantry_clones:
 			if is_instance_valid(clone) and not clone.is_queued_for_deletion():
-				var clone_is_dead = clone.get_meta("is_dead", false)
-				var clone_health = clone.get_meta("health", 0)
+				# Verify clone belongs to this squad
+				var clone_squad_id = clone.get_meta("squad_id", "")
+				if clone_squad_id != squad_unique_id:
+					continue  # Skip clones that don't belong to this squad
+					
+				var clone_is_dead = false
+				var clone_health = 0
+				
+				# Safe property access for clone death status
+				if clone.has_meta("is_dead"):
+					clone_is_dead = clone.get_meta("is_dead")
+				
+				# Safe property access for clone health
+				if clone.has_meta("health"):
+					clone_health = clone.get_meta("health")
+				
 				if not clone_is_dead and clone_health > 0:
 					valid_clones.append(clone)
 		
@@ -836,20 +995,31 @@ func take_damage(amount: int):
 			# Damage goes to a random clone (leader is protected while clones exist)
 			var clone_index = randi() % valid_clones.size()
 			var clone = valid_clones[clone_index]
-			var hp = clone.get_meta("health", 1)
+			var hp = clone.get_meta("health")
 			hp -= 1
 			clone.set_meta("health", hp)
 			current_health -= 1
-			unit_bar.set_health_bar(current_health / total_health)
+			
+			print("CLONE DAMAGED: Squad ", squad_unique_id, " clone health: ", hp)
+			
+			# Update health bar with ownership verification
+			_safe_update_health_bar()
+			
 			if hp <= 0:
-				infantry_clones.erase(clone)
+				print("CLONE KILLED: Squad ", squad_unique_id)
 				_handle_clone_death(clone)
 		elif stats.health > 0:
 			# Only target leader when no clones remain
 			stats.health -= 1
 			current_health -= 1
-			unit_bar.set_health_bar(current_health / total_health)
+			
+			print("LEADER DAMAGED: Squad ", squad_unique_id, " leader health: ", stats.health, " (Stats ID: ", stats.get_instance_id(), ")")
+			
+			# Update health bar with ownership verification
+			_safe_update_health_bar()
+			
 			if stats.health <= 0:
+				print("LEADER KILLED - TRIGGERING SQUAD DEATH: ", squad_unique_id, " (Stats ID: ", stats.get_instance_id(), ")")
 				# Leader is dead, trigger death sequence
 				if not is_dead:
 					is_dead = true
@@ -857,12 +1027,39 @@ func take_damage(amount: int):
 				return
 		else:
 			# No valid targets remain
+			print("NO VALID TARGETS: Squad ", squad_unique_id)
 			break
 
-# New method to handle individual clone death with animation
+# Optional: Add a function to get cover status for UI or debugging
+func get_cover_status() -> String:
+	if _is_in_cover():
+		return "IN COVER"
+	else:
+		return "EXPOSED"
+
+# Optional: Visual indicator for cover (add this to _physics_process if you want real-time feedback)
+func _update_cover_visual():
+	# You could change unit colors, add shields, or show cover icons
+	# This is just an example of how you might implement visual feedback
+	if _is_in_cover():
+		# Squad is in cover - could tint them blue or add a shield icon
+		pass
+	else:
+		# Squad is exposed - normal appearance
+		pass
+
+# FIXED: Only handle clones that belong to THIS squad
 func _handle_clone_death(clone: Node3D):
 	if not is_instance_valid(clone):
 		return
+	
+	# Verify this clone belongs to this squad
+	var clone_squad_id = clone.get_meta("squad_id", "")
+	if clone_squad_id != squad_unique_id:
+		push_warning("Attempted to kill clone from different squad!")
+		return
+	
+	print("CLONE DEATH: Squad ", squad_unique_id, " killing clone with ID ", clone_squad_id)
 	
 	# Mark clone as dead IMMEDIATELY to prevent further processing
 	clone.set_meta("is_dead", true)
@@ -877,11 +1074,19 @@ func _handle_clone_death(clone: Node3D):
 	if ring:
 		ring.visible = false
 	
+	# Remove from this squad's array immediately
+	infantry_clones.erase(clone)
+	
 	# Play death animation - this now properly handles stopping current animations
 	_play_death_animation(clone)
 
-# New method to handle squad death without destroying the squad
+# FIXED: Enhanced squad death with proper ownership verification
 func _handle_squad_death():
+	print("=== SQUAD DEATH TRIGGERED ===")
+	print("Squad ID: ", squad_unique_id)
+	print("Stats ID: ", stats.get_instance_id() if stats else "NO STATS")
+	print("Stats health: ", stats.health if stats else "NO STATS")
+	
 	# IMMEDIATELY stop any ongoing attack sequence and invalidate future ones
 	is_attacking = false
 	set_meta("current_attack_id", -1)  # Invalidate any ongoing attack sequences
@@ -895,25 +1100,52 @@ func _handle_squad_death():
 	if collision_shape:
 		collision_shape.disabled = true
 	
-	# Permanently hide selection ring
-	if selection_ring:
+	# Permanently hide selection ring for THIS squad only
+	if selection_ring and is_instance_valid(selection_ring):
 		selection_ring.visible = false
 	
 	# Play death animation for the leader
 	_play_death_animation(self)
 	
-	# Handle remaining clones with death animations
-	for clone in infantry_clones:
+	# Handle remaining clones with death animations - only THIS squad's clones
+	var clones_copy = infantry_clones.duplicate()  # Make a copy to avoid modification during iteration
+	print("Processing ", clones_copy.size(), " clones for squad: ", squad_unique_id)
+	for clone in clones_copy:
 		if is_instance_valid(clone) and not clone.is_queued_for_deletion():
-			var clone_is_dead = clone.get_meta("is_dead", false)
-			if not clone_is_dead:  # Only kill clones that aren't already dead
-				_handle_clone_death(clone)
+			var clone_squad_id = clone.get_meta("squad_id", "")
+			if clone_squad_id == squad_unique_id:  # Only kill our own clones
+				var clone_is_dead = clone.get_meta("is_dead", false)
+				if not clone_is_dead:
+					print("Killing clone for squad: ", squad_unique_id)
+					_handle_clone_death(clone)
+			else:
+				print("SKIPPING clone with different squad ID: ", clone_squad_id, " (expected: ", squad_unique_id, ")")
 
-	#Permanently delete unit icon + health bar	
-	unit_bar.delete_unit_bar()
+	# CRITICAL FIX: Proper unit bar deletion with ownership verification
+	if unit_bar and is_instance_valid(unit_bar):
+		print("Attempting to delete unit bar for squad: ", squad_unique_id)
+		# Check if this unit bar actually belongs to this squad
+		if "squad_owner" in unit_bar and unit_bar.squad_owner == self:
+			print("OWNERSHIP VERIFIED - Deleting unit bar for: ", squad_unique_id)
+			unit_bar.delete_unit_bar()
+		elif unit_bar.has_method("is_owned_by") and unit_bar.is_owned_by(self):
+			print("BACKUP OWNERSHIP VERIFIED - Deleting unit bar for: ", squad_unique_id)
+			unit_bar.delete_unit_bar()
+		else:
+			# If ownership is unclear, just hide it instead of deleting
+			print("OWNERSHIP FAILED - NOT deleting unit bar for: ", squad_unique_id)
+			unit_bar.visible = false
+			push_warning("Could not verify unit bar ownership for squad: ", squad_unique_id)
 	
-	# Remove from combat groups so enemies don't target this dead squad
+	# Remove only THIS squad from combat groups
 	if is_in_group("allies"):
 		remove_from_group("allies")
+		print("Removed ", squad_unique_id, " from allies group")
 	if is_in_group("axis"):
 		remove_from_group("axis")
+		print("Removed ", squad_unique_id, " from axis group")
+	
+	# Add to dead squads group to prevent further targeting
+	add_to_group("dead_squads")
+	print("Added ", squad_unique_id, " to dead_squads group")
+	print("=== END SQUAD DEATH ===")

@@ -15,13 +15,13 @@ unit_name = "Gren"
 health = 3
 move_speed = 7.5
 cost = 0
-weapon_type = ""
+weapon_type = "Kar 98"
 abilities = Array[String]([])
 squad_size = 4
-short_range_accuracy = 0.38
-medium_range_accuracy = 0.55
-long_range_accuracy = 0.84
-vision_range = 50.0
+short_range_accuracy = 0.6
+medium_range_accuracy = 0.7
+long_range_accuracy = 0.8
+vision_range = 45.0
 metadata/_custom_type_script = "uid://c1wddsm427l3n"
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_inn7v"]
@@ -4595,7 +4595,6 @@ tracks/112/keys = PackedFloat32Array(0, 1, -2.09548e-06, 14.3594, 1.46031e-06)
 [sub_resource type="Animation" id="Animation_vvpmg"]
 resource_name = "Fire"
 length = 1.3
-loop_mode = 1
 tracks/0/type = "position_3d"
 tracks/0/imported = true
 tracks/0/enabled = true
@@ -8323,7 +8322,7 @@ bones/66/rotation = Quaternion(2.75904e-08, -1.09256e-07, 1.16415e-08, 1)
 bones/66/scale = Vector3(1, 1, 1)
 
 [node name="german_helmet" type="BoneAttachment3D" parent="Infantry/Armature/Skeleton3D"]
-transform = Transform3D(15.6152, -2.85813, 5.33836, 2.358, 22.1396, -0.339599, -5.23996, 1.4456, 15.7556, -18.9224, 7.19181, -342.128)
+transform = Transform3D(15.6152, -2.85813, 5.33836, 2.358, 22.1396, -0.3396, -5.23996, 1.4456, 15.7556, -18.9224, 7.19182, -342.128)
 bone_name = "german_helmet"
 bone_idx = 7
 
@@ -8332,7 +8331,7 @@ mesh = SubResource("ArrayMesh_lv5fo")
 skeleton = NodePath("")
 
 [node name="german_rifle" type="BoneAttachment3D" parent="Infantry/Armature/Skeleton3D"]
-transform = Transform3D(-9.65994, -0.0333375, 0.211528, 0.0307968, -9.66156, -0.116219, 0.211912, -0.115516, 9.65931, -28.4847, 84.209, -280.103)
+transform = Transform3D(-9.65994, -0.0333368, 0.211529, 0.0307981, -9.66156, -0.116219, 0.211911, -0.115517, 9.65931, -28.4847, 84.209, -280.103)
 bone_name = "german_rifle"
 bone_idx = 56
 
@@ -8410,8 +8409,8 @@ draw_pass_1 = SubResource("QuadMesh_x6py3")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.004, 1.856, 0)
 shape = SubResource("CylinderShape3D_bi1ue")
 
-[node name="Vision" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.24535, 0)
-
 [node name="UnitBar" parent="." instance=ExtResource("7_hsipc")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6.43024, 0)
+
+[node name="Vision" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.25981, 0)
