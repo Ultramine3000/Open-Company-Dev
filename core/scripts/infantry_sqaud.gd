@@ -336,105 +336,74 @@ func _clone_play_animation(clone: Node3D, anim_name: String):
 		clone_anim.play(anim_name)
 
 func _process_clone_movement(delta):
-	# Create a safe copy of the infantry_clones array to avoid modification during iteration
 	var valid_clones = []
 	for clone in infantry_clones:
 		if is_instance_valid(clone) and not clone.is_queued_for_deletion():
-			var clone_is_dead = clone.get_meta("is_dead", false)
-			if not clone_is_dead:
+			if not clone.get_meta("is_dead", false):
 				valid_clones.append(clone)
-			
-	# Clean up our actual array if needed
+
 	if valid_clones.size() != infantry_clones.size():
 		infantry_clones = valid_clones.duplicate()
-	
-	# Check if we're currently moving
+
 	var is_moving = not nav_agent.is_navigation_finished()
-	
-	# If moving, check if formation orientation needs updating
-	if is_moving and abs(rotation.y - last_movement_rotation) > 0.1:
-		# Leader has rotated significantly during movement, update formation orientation
+
+	if is_moving and abs(rotation.y - last_movement_rotation) > 0.05:
 		formation_forward = -global_transform.basis.z.normalized()
 		formation_right = global_transform.basis.x.normalized()
 		last_movement_rotation = rotation.y
-	
+
 	for clone in valid_clones:
-		var clone_anim_player = clone.get_node_or_null("AnimationPlayer")
 		var offset: Vector3 = clone.get_meta("formation_offset")
-		
-		# Use the formation vectors that update during movement but stay fixed during combat
 		var target_pos = global_transform.origin + formation_right * offset.x + formation_forward * offset.z
 		var move_vec = target_pos - clone.global_transform.origin
 		move_vec.y = 0
 		var distance = move_vec.length()
-		
-		# Determine if this specific clone is still moving
-		var clone_moving = is_moving || distance > 0.25
-		
+
+		var clone_anim = clone.get_node_or_null("AnimationPlayer")
+		var clone_moving = is_moving or distance > 0.25
+
 		if clone_moving:
-			# Keep move animation playing until clone reaches position
-			if clone_anim_player and clone_anim_player.current_animation != "Move":
-				clone_anim_player.play("Move")
-		
-			# Move toward formation target
-			clone.global_translate(move_vec.normalized() * stats.move_speed * 0.9 * delta)
-			
-			# Set rotation to match movement direction
-			if move_vec.length() > 0.1:
+			if clone_anim and clone_anim.current_animation != "Move":
+				clone_anim.play("Move")
+
+			var move_step = move_vec.normalized() * min(distance, stats.move_speed * delta)
+			clone.global_translate(move_step)
+
+			if distance > 0.1:
 				var target_rot = atan2(move_vec.x, move_vec.z)
-				var current_rot = clone.rotation.y
-				clone.rotation.y = lerp_angle(current_rot, target_rot, delta * 5.0)
-				
+				clone.rotation.y = lerp_angle(clone.rotation.y, target_rot, delta * 4.0)
+
 		elif enemy_in_range and current_enemy and is_instance_valid(current_enemy):
-			# COMBAT MODE: Only rotate to face enemy, but maintain formation position
 			var direction_to_enemy = current_enemy.global_transform.origin - clone.global_transform.origin
 			direction_to_enemy.y = 0
-			
+
 			if direction_to_enemy.length() > 0.1:
 				var target_rotation = atan2(direction_to_enemy.x, direction_to_enemy.z)
-				clone.rotation.y = lerp_angle(clone.rotation.y, target_rotation, delta * 5.0)
-				
-				# Keep in combat stance while enemy in range
-				if clone_anim_player and clone_anim_player.current_animation != "Aim" and clone_anim_player.current_animation != "Fire":
-					clone_anim_player.play("Aim")
-			
-			# CRITICAL: Continue with normal formation positioning, but don't adjust rotations
-			# This way clones will maintain formation position but still face enemies
-			
-			# Dead zone to stop jitter - applied during combat too
-			if distance < 0.05:
-				var pos = clone.global_transform.origin
-				pos.y = global_transform.origin.y + 0.001
-				clone.global_transform.origin = pos
-				continue
-				
-			# Move toward formation position while still facing enemy
-			clone.global_translate(move_vec.normalized() * stats.move_speed * 0.5 * delta)
+				clone.rotation.y = lerp_angle(clone.rotation.y, target_rotation, delta * 4.0)
+
+			if clone_anim and clone_anim.current_animation not in ["Aim", "Fire"]:
+				clone_anim.play("Aim")
+
+			if distance > 0.05:
+				var combat_move_step = move_vec.normalized() * min(distance, stats.move_speed * 0.5 * delta)
+				clone.global_translate(combat_move_step)
 		else:
-			# Return to idle if not moving and not in combat
-			if clone_anim_player and clone_anim_player.current_animation != "Idle_1" and clone_anim_player.current_animation != "Idle_2":
-				clone_anim_player.play(_get_random_idle_animation())
-		
-		# Dead zone to stop jitter - ONLY apply this when not in combat
+			if clone_anim and clone_anim.current_animation not in ["Idle_1", "Idle_2"]:
+				clone_anim.play(_get_random_idle_animation())
+
+		# Snap to position to avoid jitter
 		if distance < 0.05 and not enemy_in_range:
-			var pos = clone.global_transform.origin
-			pos.y = global_transform.origin.y + 0.001
-			clone.global_transform.origin = pos
+			clone.global_transform.origin = target_pos
 
-			# Only switch to idle if not moving and we're not in combat
-			if clone_anim_player and clone_anim_player.current_animation != "Idle_1" and clone_anim_player.current_animation != "Idle_2" and not is_attacking and not is_moving:
-				clone_anim_player.play(_get_random_idle_animation())
-			continue
-
-		# ⛔ Avoid getting too close to the leader
+		# Collision avoidance: too close to leader
 		var to_leader = clone.global_transform.origin - global_transform.origin
 		to_leader.y = 0
 		var dist_to_leader = to_leader.length()
 		if dist_to_leader < 1.5:
 			var push_away = to_leader.normalized() * (1.5 - dist_to_leader)
-			clone.global_translate(push_away * delta * 4.0)  # strong push
+			clone.global_translate(push_away * delta * 4.0)
 
-		# ⛔ Avoid other clones
+		# Collision avoidance: too close to other clones
 		for other_clone in infantry_clones:
 			if other_clone == clone or not is_instance_valid(other_clone):
 				continue
@@ -447,10 +416,11 @@ func _process_clone_movement(delta):
 				var push_strength = (1.2 - dist)
 				clone.global_translate(push_dir * push_strength * delta * 3.5)
 
-		# Set correct height
+		# Match leader's Y height
 		var new_pos = clone.global_transform.origin
 		new_pos.y = global_transform.origin.y + 0.1
 		clone.global_transform.origin = new_pos
+
 
 func move_to_position(pos: Vector3):
 	# Don't accept move commands if dead

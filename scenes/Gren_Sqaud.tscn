@@ -8389,6 +8389,7 @@ autoplay = "Idle_1"
 playback_default_blend_time = 0.15
 
 [node name="NavigationAgent3D" type="NavigationAgent3D" parent="Infantry"]
+simplify_path = true
 avoidance_enabled = true
 
 [node name="Muzzle_Flash" type="Node3D" parent="Infantry"]
