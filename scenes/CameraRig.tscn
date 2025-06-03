@@ -2,8 +2,9 @@
 
 [ext_resource type="Script" uid="uid://buqrreyau46cj" path="res://core/scripts/Camera.gd" id="1_7xkah"]
 
-[node name="CameraRig" type="Node3D"]
+[node name="CameraRig" type="Node3D" node_paths=PackedStringArray("camera")]
 script = ExtResource("1_7xkah")
+camera = NodePath("Camera3D")
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.523302, 0.852147, 0, -0.852147, 0.523302, 0, 7.55208, 3.18607)

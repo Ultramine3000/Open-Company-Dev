@@ -10,9 +10,10 @@ diffuse_mode = 3
 specular_mode = 1
 disable_ambient_light = true
 disable_fog = true
+albedo_color = Color(1, 1, 0, 1)
 albedo_texture = ExtResource("1_d6khe")
 emission_enabled = true
-emission = Color(1, 0.451402, 0.144465, 1)
+emission = Color(0.875376, 0.869865, 0.0329388, 1)
 emission_energy_multiplier = 16.0
 disable_receive_shadows = true
 
@@ -21,12 +22,11 @@ material = SubResource("StandardMaterial3D_ylrsi")
 size = Vector2(0.07, 0.1)
 
 [node name="SparksMetal" type="GPUParticles3D"]
+transform = Transform3D(1, 0, -2.08616e-07, 0, 1, 0, 2.08616e-07, 0, 1, 0, 0, 0)
 cast_shadow = 0
 gi_mode = 0
-emitting = false
 amount = 5
 lifetime = 2.0
-one_shot = true
 explosiveness = 1.0
 randomness = 1.0
 fixed_fps = 60
