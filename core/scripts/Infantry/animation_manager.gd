@@ -26,6 +26,8 @@ class UnitAnimationState:
 	var was_moving: bool = false
 	var last_cover_state: bool = false
 	var cover_transition_time: float = 0.0
+	var is_currently_firing: bool = false  # NEW: Track if unit is currently showing fire animation
+	var fire_animation_duration: float = 0.5  # NEW: How long to show fire animation
 
 func _ready():
 	if not squad_unit:
@@ -173,22 +175,71 @@ func _is_unit_dead(unit: Node3D) -> bool:
 		# For clones
 		return unit.get_meta("is_dead", false)
 
+# NEW: Method called by SquadUnit when a unit actually fires
+func trigger_unit_fire_animation(unit: Node3D):
+	"""Called by SquadUnit when a unit actually fires - uses configurable duration"""
+	var state = unit_states.get(unit)
+	if not state or state.unit_is_dead:
+		return
+	
+	var animator = unit_animators.get(unit)
+	if not animator:
+		return
+	
+	# Get fire animation duration from CombatUnitData
+	var fire_duration = squad_unit.stats.fire_animation_duration if squad_unit.stats else 0.5
+	state.fire_animation_duration = fire_duration
+	
+	# Mark this unit as currently firing
+	state.is_currently_firing = true
+	state.fire_start_time = Time.get_ticks_msec() / 1000.0
+	
+	# Force immediate animation update to show fire animation
+	var in_heavy_cover = unit.get_meta("in_heavy_cover", false)
+	var fire_anim = "Crouch_Fire" if in_heavy_cover else "Fire"
+	_play_unit_animation(unit, animator, fire_anim, state)
+	state.last_played_animation = fire_anim
+	
+	print("Animation: Triggered fire animation for ", unit.name, " - ", fire_anim, " (duration: ", fire_duration, "s)")
+
 func _update_unit_combat_timing(unit: Node3D, state: UnitAnimationState):
-	"""Update combat timing for a specific unit"""
+	"""Combat timing that uses configurable aim time from CombatUnitData"""
 	var now = Time.get_ticks_msec() / 1000.0
 	var enemy = _get_unit_target(unit)
+	
+	# Get aim time from CombatUnitData
+	var aim_time = squad_unit.stats.aim_time_before_fire if squad_unit.stats else 1.2
 	
 	if enemy != null and is_instance_valid(enemy):
 		state.last_enemy_seen_time = now
 		if state.time_target_acquired == 0.0:
 			state.time_target_acquired = now
 			state.has_aimed = false
-			state.next_fire_time = now + 1.2 + randf_range(0.3, 1.0)
-		elif not state.has_aimed and now - state.time_target_acquired >= 1.2:
+		elif not state.has_aimed and now - state.time_target_acquired >= aim_time:
 			state.has_aimed = true
-			state.next_fire_time = now + randf_range(0.3, 1.0)
 	elif now - state.last_enemy_seen_time > grace_period:
 		_reset_unit_combat_timing(state)
+	
+	# Handle fire animation duration (now configurable)
+	if state.is_currently_firing:
+		if now - state.fire_start_time >= state.fire_animation_duration:
+			state.is_currently_firing = false
+			state.fire_start_time = 0.0
+
+func get_animation_timing_debug() -> Dictionary:
+	"""Get debug info about animation timing settings"""
+	if not squad_unit or not squad_unit.stats:
+		return {
+			"fire_animation_duration": 0.5,
+			"aim_time_before_fire": 1.2,
+			"source": "defaults"
+		}
+	
+	return {
+		"fire_animation_duration": squad_unit.stats.fire_animation_duration,
+		"aim_time_before_fire": squad_unit.stats.aim_time_before_fire,
+		"source": "CombatUnitData"
+	}
 
 func _get_unit_target(unit: Node3D) -> Node:
 	"""Get the target for a specific unit"""
@@ -206,8 +257,8 @@ func _determine_unit_animation(unit: Node3D, state: UnitAnimationState) -> Strin
 	var is_moving = _is_unit_moving(unit, state)
 	var enemy_target = _get_unit_target(unit)
 	var is_attacking = enemy_target != null and is_instance_valid(enemy_target)
-	var now = Time.get_ticks_msec() / 1000.0
 	var current_cover_state = unit.get_meta("in_heavy_cover", false)
+	var now = Time.get_ticks_msec() / 1000.0
 	var in_heavy_cover = _get_effective_cover_state(unit, current_cover_state, now, state)
 	
 	# Reset combat timing when movement state changes
@@ -218,22 +269,17 @@ func _determine_unit_animation(unit: Node3D, state: UnitAnimationState) -> Strin
 	
 	state.was_moving = is_moving
 	
+	# If unit is currently firing (triggered by SquadUnit), show fire animation
+	if state.is_currently_firing:
+		return "Crouch_Fire" if in_heavy_cover else "Fire"
+	
 	if is_attacking:
 		if is_moving:
 			return "Crouch_Move" if in_heavy_cover else "Move"
 		elif not state.has_aimed:
 			return "Crouch" if in_heavy_cover else "Aim"
-		elif now >= state.next_fire_time:
-			if state.fire_start_time > 0.0 and now - state.fire_start_time < fire_duration:
-				return "Crouch_Fire" if in_heavy_cover else "Fire"
-			elif state.fire_start_time == 0.0:
-				state.fire_start_time = now
-				return "Crouch_Fire" if in_heavy_cover else "Fire"
-			else:
-				state.fire_start_time = 0.0
-				state.next_fire_time = now + randf_range(1.0, 1.5)
-				return "Crouch" if in_heavy_cover else "Aim"
 		else:
+			# Has aimed and has target, but not currently firing
 			return "Crouch" if in_heavy_cover else "Aim"
 	
 	if is_moving:
@@ -330,6 +376,7 @@ func _reset_unit_combat_timing(state: UnitAnimationState):
 	state.has_aimed = false
 	state.next_fire_time = 0.0
 	state.fire_start_time = 0.0
+	state.is_currently_firing = false  # NEW: Reset firing state
 
 func _get_effective_cover_state(unit: Node3D, current_state: bool, current_time: float, state: UnitAnimationState) -> bool:
 	"""Get effective cover state with grace period"""
@@ -412,7 +459,9 @@ func get_animation_debug_info() -> Dictionary:
 			"is_dead": state.unit_is_dead,
 			"has_aimed": state.has_aimed,
 			"is_attacking": _get_unit_target(unit) != null,
-			"last_played": state.last_played_animation
+			"last_played": state.last_played_animation,
+			"is_currently_firing": state.is_currently_firing,
+			"fire_start_time": state.fire_start_time
 		}
 	
 	return debug_info
@@ -423,3 +472,4 @@ func force_animation_update():
 		if is_instance_valid(unit):
 			var state = unit_states[unit]
 			state.last_played_animation = ""  # Force refresh
+			

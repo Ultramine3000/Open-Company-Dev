@@ -24,3 +24,15 @@ class_name CombatUnitData
 
 # Formation settings
 @export_range(1.0, 10.0, 0.5) var formation_spacing: float = 3.0
+
+# NEW: Stagger Control Settings
+@export_group("Attack Staggering")
+@export_range(0.0, 2.0, 0.1) var leader_delay: float = 0.0
+@export_range(0.1, 2.0, 0.1) var clone_initial_delay: float = 0.3
+@export_range(0.1, 2.0, 0.1) var clone_stagger_interval: float = 0.4
+@export_range(0.0, 1.0, 0.05) var stagger_randomization: float = 0.1
+
+# NEW: Animation Control Settings  
+@export_group("Animation Timing")
+@export_range(0.1, 2.0, 0.1) var fire_animation_duration: float = 0.5
+@export_range(0.5, 5.0, 0.1) var aim_time_before_fire: float = 1.2

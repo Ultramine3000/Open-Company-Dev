@@ -13,7 +13,7 @@
 script = ExtResource("2_eca55")
 unit_icon = ExtResource("3_v08oi")
 unit_name = "Tirailleur Sqaud"
-health = 90
+health = 120
 move_speed = 8.0
 cost = 50
 weapon_type = "MAS-35"
@@ -21,8 +21,14 @@ abilities = Array[String]([])
 squad_size = 5
 vision_range = 40.0
 attack_range = 40.0
-attack_interval = 8.0
+attack_interval = 4.619
 formation_spacing = 3.5
+leader_delay = 0.0
+clone_initial_delay = 0.3
+clone_stagger_interval = 0.4
+stagger_randomization = 0.1
+fire_animation_duration = 0.5
+aim_time_before_fire = 0.5
 metadata/_custom_type_script = "uid://c1wddsm427l3n"
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6ql1o"]
@@ -36,10 +42,6 @@ emission_texture = ExtResource("3_xq74o")
 [sub_resource type="PlaneMesh" id="PlaneMesh_b1jte"]
 material = SubResource("StandardMaterial3D_6ql1o")
 size = Vector2(1.2, 1.2)
-
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1fc82"]
-radius = 0.616257
-height = 3.57231
 
 [sub_resource type="Curve" id="Curve_cnj2s"]
 _data = [Vector2(0, 0), 0.0, 14.2592, 0, 0, Vector2(0.135693, 1), 0.0, 0.0, 0, 0, Vector2(0.616519, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
@@ -11198,6 +11200,10 @@ _data = {
 &"RESET": SubResource("Animation_1fc82")
 }
 
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1fc82"]
+radius = 0.616257
+height = 3.57231
+
 [node name="Tirailleur_Sqaud" type="CharacterBody3D" groups=["allies", "infantry"]]
 collision_mask = 0
 script = ExtResource("1_my61e")
@@ -11214,10 +11220,6 @@ skeleton = NodePath("../..")
 avoidance_enabled = true
 radius = 5.0
 
-[node name="body" type="CollisionShape3D" parent="Infantry"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.85613, 0)
-shape = SubResource("CapsuleShape3D_1fc82")
-
 [node name="Muzzle_Flash" type="Node3D" parent="Infantry"]
 transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -0.110178, 2.91543, 1.8011)
 script = ExtResource("4_xq74o")
@@ -11233,7 +11235,7 @@ process_material = SubResource("ParticleProcessMaterial_d5qlp")
 draw_pass_1 = SubResource("QuadMesh_44bd3")
 
 [node name="Armature" type="Node3D" parent="Infantry"]
-transform = Transform3D(0.01, 0, 0, 0, 0, -0.01, 0, 0.01, 0, 0, 0, 0)
+transform = Transform3D(0.00991834, -0.00127532, 5.5746e-11, 0, -4.37114e-10, -0.01, 0.00127532, 0.00991834, -4.33545e-10, 0, 0, 0)
 
 [node name="Skeleton3D" type="Skeleton3D" parent="Infantry/Armature"]
 bones/0/name = "mixamorig_Hips"
@@ -11707,7 +11709,7 @@ bones/66/rotation = Quaternion(2.75904e-08, -1.09256e-07, 1.16415e-08, 1)
 bones/66/scale = Vector3(1, 1, 1)
 
 [node name="model_4_001" type="BoneAttachment3D" parent="Infantry/Armature/Skeleton3D"]
-transform = Transform3D(25.1403, -1.49547, 9.89636, 3.68761, 26.2574, -5.4, -9.30462, 6.36569, 24.599, -22.168, 6.62803, -345.933)
+transform = Transform3D(25.1403, -1.49548, 9.89637, 3.68761, 26.2574, -5.4, -9.30462, 6.36569, 24.599, -22.168, 6.62802, -345.933)
 bone_name = "model_4.001"
 bone_idx = 7
 
@@ -11716,7 +11718,7 @@ mesh = SubResource("ArrayMesh_7it8x")
 skeleton = NodePath("")
 
 [node name="french_rifle" type="BoneAttachment3D" parent="Infantry/Armature/Skeleton3D"]
-transform = Transform3D(2.84542, -0.419654, -21.1949, 21.1983, -0.111001, 2.84811, -0.165876, -21.3848, 0.401143, -25.6954, 26.4945, -281.596)
+transform = Transform3D(2.84541, -0.419636, -21.1949, 21.1983, -0.110999, 2.84809, -0.165867, -21.3848, 0.40113, -25.6954, 26.4945, -281.596)
 bone_name = "french_rifle"
 bone_idx = 56
 
@@ -11762,6 +11764,10 @@ libraries = {
 }
 autoplay = "Idle_1"
 playback_default_blend_time = 0.4
+
+[node name="body" type="CollisionShape3D" parent="Infantry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.85613, 0)
+shape = SubResource("CapsuleShape3D_1fc82")
 
 [node name="Vision" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.25981, 0)

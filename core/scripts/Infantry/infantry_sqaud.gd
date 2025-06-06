@@ -89,19 +89,23 @@ func _initialize_squad():
 	leader_is_original = true
 	
 	var default_health = 100
-	var default_interval = 4.0  # CHANGED: Increased from 2.0 to 4.0 seconds
+	var default_interval = 4.0
 	
 	if stats:
 		leader_max_health = stats.health
 		clone_max_health = stats.health
-		attack_interval = stats.attack_interval
+		attack_interval = stats.attack_interval  # This is now properly used
 		squad_size = stats.squad_size
 		_spawn_clones(stats.squad_size - 1)
+		print("DEBUG: Attack interval loaded from stats: ", stats.attack_interval)
 	else:
 		leader_max_health = default_health
 		clone_max_health = default_health
 		attack_interval = default_interval
 		squad_size = 1
+		print("DEBUG: Using default attack interval: ", default_interval)
+	
+	print("DEBUG: Final attack_interval value: ", attack_interval)
 	
 	alive_members = squad_size
 	max_health = leader_max_health + (squad_size - 1) * clone_max_health
@@ -558,12 +562,123 @@ func move_to_position(pos: Vector3):
 		if leader_nav:
 			leader_nav.set_target_position(pos)
 
-# COMBAT SYSTEM
+# COMBAT SYSTEM - FIXED ATTACK TIMING
+# COMBAT SYSTEM - CONFIGURABLE STAGGERED ATTACKS
 func _update_combat(delta: float):
 	_validate_current_targets()
 	_find_enemies()
 	_face_target_when_possible(delta)
-	_attack(delta)
+	_attack_staggered(delta)
+
+func _attack_staggered(delta: float):
+	"""Configurable staggered attack system that uses CombatUnitData settings"""
+	if not current_enemy or not is_instance_valid(current_enemy) or not current_leader: 
+		return
+	
+	var leader_nav = _get_navigation_agent(current_leader)
+	var can_attack = not leader_nav or leader_nav.is_navigation_finished() or (current_leader == original_leader and velocity.length() < 0.1)
+	if not can_attack: 
+		return
+		
+	attack_timer += delta
+	
+	# Leader attacks with configurable delay
+	var leader_attack_delay = stats.leader_delay if stats else 0.0
+	if attack_timer >= attack_interval + leader_attack_delay:
+		attack_timer = 0.0
+		_perform_leader_attack()
+		_schedule_clone_attacks()
+
+func _perform_leader_attack():
+	"""Leader attacks with configurable timing"""
+	if current_enemy and is_instance_valid(current_enemy) and current_leader and is_instance_valid(current_leader):
+		var distance = current_leader.global_transform.origin.distance_to(current_enemy.global_transform.origin)
+		var attack_range = stats.attack_range if stats else 20.0
+		if distance <= attack_range:
+			_fire_shot_at_target(current_leader, current_enemy, distance)
+			
+			# Notify animation manager that leader is firing NOW
+			if animation_manager:
+				animation_manager.trigger_unit_fire_animation(current_leader)
+			
+			print("Leader ", current_leader.name, " fired at ", current_enemy.name)
+
+func _schedule_clone_attacks():
+	"""Schedule clone attacks with configurable staggering from CombatUnitData"""
+	var valid_clones = []
+	
+	# Collect all clones that can attack
+	for clone in clones:
+		if not _is_clone_alive(clone): continue
+		var clone_target = clone_targets.get(clone, null)
+		if not clone_target or not is_instance_valid(clone_target): continue
+		
+		var clone_nav = clone.get_node_or_null("NavigationAgent3D")
+		var can_attack = not clone_nav or clone_nav.is_navigation_finished()
+		if not can_attack: continue
+		
+		var distance = clone.global_transform.origin.distance_to(clone_target.global_transform.origin)
+		var attack_range = stats.attack_range if stats else 20.0
+		if distance <= attack_range:
+			valid_clones.append(clone)
+	
+	# Get stagger settings from CombatUnitData (with fallbacks)
+	var initial_delay = stats.clone_initial_delay if stats else 0.3
+	var stagger_interval = stats.clone_stagger_interval if stats else 0.4
+	var randomization = stats.stagger_randomization if stats else 0.1
+	
+	# Schedule staggered attacks for valid clones
+	for i in range(valid_clones.size()):
+		var clone = valid_clones[i]
+		
+		# Calculate delay: initial delay + (clone index * stagger interval) + random variation
+		var base_delay = initial_delay + (i * stagger_interval)
+		var random_offset = randf_range(-randomization, randomization)
+		var final_delay = max(0.0, base_delay + random_offset)
+		
+		# Schedule the attack
+		get_tree().create_timer(final_delay).timeout.connect(_execute_clone_attack.bind(clone))
+		
+		print("Scheduled clone ", i, " (", clone.name, ") to fire in ", final_delay, " seconds")
+
+func _execute_clone_attack(clone: Node3D):
+	"""Execute a scheduled clone attack"""
+	if not _is_clone_alive(clone): return
+	
+	var clone_target = clone_targets.get(clone, null)
+	if not clone_target or not is_instance_valid(clone_target): return
+	
+	var distance = clone.global_transform.origin.distance_to(clone_target.global_transform.origin)
+	var attack_range = stats.attack_range if stats else 20.0
+	if distance > attack_range: return
+	
+	_fire_shot_at_target(clone, clone_target, distance)
+	
+	# Notify animation manager that this clone is firing NOW
+	if animation_manager:
+		animation_manager.trigger_unit_fire_animation(clone)
+	
+	print("Clone ", clone.name, " fired at ", clone_target.name, " (staggered)")
+
+# Helper method to get current stagger settings for debugging
+func get_stagger_settings() -> Dictionary:
+	"""Debug method to see current stagger settings"""
+	if not stats:
+		return {
+			"leader_delay": 0.0,
+			"clone_initial_delay": 0.3,
+			"clone_stagger_interval": 0.4,
+			"stagger_randomization": 0.1,
+			"source": "defaults"
+		}
+	
+	return {
+		"leader_delay": stats.leader_delay,
+		"clone_initial_delay": stats.clone_initial_delay,
+		"clone_stagger_interval": stats.clone_stagger_interval,
+		"stagger_randomization": stats.stagger_randomization,
+		"source": "CombatUnitData"
+	}
 
 func _validate_current_targets():
 	"""Comprehensive target validation and cleanup"""
@@ -712,61 +827,6 @@ func _should_clone_face_target(clone: Node3D, clone_nav: NavigationAgent3D) -> b
 	var offset = clone.get_meta("formation_offset", Vector3.ZERO)
 	var formation_target = leader_pos + offset
 	return clone.global_transform.origin.distance_to(formation_target) < 1.0
-
-func _attack(delta: float):
-	if not current_enemy or not is_instance_valid(current_enemy) or not current_leader: return
-	
-	var leader_nav = _get_navigation_agent(current_leader)
-	var can_attack = not leader_nav or leader_nav.is_navigation_finished() or (current_leader == original_leader and velocity.length() < 0.1)
-	if not can_attack: return
-		
-	attack_timer += delta
-	# CHANGED: Add randomization to leader attack interval like clones
-	var leader_attack_interval = attack_interval + randf_range(0.5, 1.5)
-	if attack_timer >= leader_attack_interval:
-		attack_timer = 0.0
-		# CHANGED: Add random delay after leader fires, like clones
-		attack_timer = -randf_range(0.2, 1.0)  # Negative so next attack is delayed
-		_perform_staggered_attack()
-
-func _perform_staggered_attack():
-	# Leader attacks - but only if they have a target and are the current leader
-	if current_enemy and is_instance_valid(current_enemy) and current_leader and is_instance_valid(current_leader):
-		# Check if current leader is actually attacking (not just triggering for clones)
-		if current_leader == original_leader or current_leader in clones:
-			var distance = current_leader.global_transform.origin.distance_to(current_enemy.global_transform.origin)
-			var attack_range = stats.attack_range if stats else 20.0
-			if distance <= attack_range:
-				_fire_shot_at_target(current_leader, current_enemy, distance)
-				print("Leader ", current_leader.name, " fired at ", current_enemy.name)
-	
-	# Clones attack with increased randomization for more staggered timing
-	for clone in clones:
-		if not _is_clone_alive(clone): continue
-		var clone_target = clone_targets.get(clone, null)
-		if not clone_target or not is_instance_valid(clone_target): continue
-		
-		var clone_nav = clone.get_node_or_null("NavigationAgent3D")
-		var can_attack = not clone_nav or clone_nav.is_navigation_finished()
-		if not can_attack: continue
-		
-		var distance = clone.global_transform.origin.distance_to(clone_target.global_transform.origin)
-		var attack_range = stats.attack_range if stats else 20.0
-		if distance > attack_range: continue
-		
-		var timer_key = clone.get_instance_id()
-		if timer_key not in clone_attack_timers:
-			# CHANGED: Increased randomization range for more staggered attacks
-			clone_attack_timers[timer_key] = randf_range(0.5, attack_interval * 1.5)
-		
-		clone_attack_timers[timer_key] += get_physics_process_delta_time()
-		var clone_attack_interval = attack_interval + randf_range(0.3, 1.2)
-		if clone_attack_timers[timer_key] >= clone_attack_interval:
-			clone_attack_timers[timer_key] = 0.0
-			# CHANGED: Add additional random delay after firing
-			clone_attack_timers[timer_key] = randf_range(0.2, 1.0)
-			_fire_shot_at_target(clone, clone_target, distance)
-			print("Clone ", clone.name, " fired at ", clone_target.name)
 
 func _fire_shot_at_target(shooter: Node3D, target: Node, distance: float):
 	if not target or not is_instance_valid(target) or is_dead: return
@@ -997,3 +1057,16 @@ func unregister_unit_from_animation(unit: Node3D):
 	"""Remove a unit from animation management"""
 	if animation_manager:
 		animation_manager.unregister_unit(unit)
+
+# DEBUG METHOD FOR ATTACK TIMING
+func debug_attack_timing():
+	"""Debug method to check attack interval values"""
+	print("=== ATTACK TIMING DEBUG ===")
+	print("Stats object: ", stats)
+	if stats:
+		print("Stats attack_interval: ", stats.attack_interval)
+	print("Current attack_interval variable: ", attack_interval)
+	print("Attack timer current value: ", attack_timer)
+	print("Time until next attack: ", attack_interval - attack_timer)
+	print("Leader can attack: ", current_enemy != null and current_leader != null)
+	print("==========================")
