@@ -561,8 +561,51 @@ func move_to_position(pos: Vector3):
 		var leader_nav = _get_navigation_agent(current_leader)
 		if leader_nav:
 			leader_nav.set_target_position(pos)
+			
+			# IMMEDIATELY CANCEL ALL COMBAT STATE
+			_cancel_all_combat()
 
-# COMBAT SYSTEM - FIXED ATTACK TIMING
+func _cancel_all_combat():
+	"""Immediately cancel all combat operations when a move order is given"""
+	# Clear main enemy target
+	current_enemy = null
+	
+	# Reset attack timer to prevent immediate attack on arrival
+	attack_timer = 0.0
+	
+	# Clear all clone targets
+	clone_targets.clear()
+	clone_attack_timers.clear()
+	
+	# Cancel any pending clone attack timers
+	_cancel_pending_clone_attacks()
+	
+	# Notify animation manager to cancel any ongoing attack animations
+	if animation_manager and animation_manager.has_method("cancel_all_attack_animations"):
+		animation_manager.cancel_all_attack_animations()
+	
+	print("Combat cancelled for squad: ", squad_id, " due to move order")
+
+func _cancel_pending_clone_attacks():
+	"""Cancel any scheduled clone attacks that haven't executed yet"""
+	# Unfortunately, we can't directly cancel Timer.timeout connections that are already scheduled
+	# But we can mark clones as "should not attack" and check this in _execute_clone_attack
+	
+	# Set a flag that _execute_clone_attack will check
+	for clone in clones:
+		if is_instance_valid(clone):
+			clone.set_meta("cancel_next_attack", true)
+	
+	# Clear the flag after a short delay (longer than max possible stagger delay)
+	var max_possible_delay = 2.0  # Adjust based on your max stagger settings
+	get_tree().create_timer(max_possible_delay).timeout.connect(_clear_attack_cancellation_flags)
+
+func _clear_attack_cancellation_flags():
+	"""Clear the attack cancellation flags after scheduled attacks would have completed"""
+	for clone in clones:
+		if is_instance_valid(clone):
+			clone.remove_meta("cancel_next_attack")
+
 # COMBAT SYSTEM - CONFIGURABLE STAGGERED ATTACKS
 func _update_combat(delta: float):
 	_validate_current_targets()
@@ -642,8 +685,13 @@ func _schedule_clone_attacks():
 		print("Scheduled clone ", i, " (", clone.name, ") to fire in ", final_delay, " seconds")
 
 func _execute_clone_attack(clone: Node3D):
-	"""Execute a scheduled clone attack"""
+	"""Execute a scheduled clone attack - now with cancellation support"""
 	if not _is_clone_alive(clone): return
+	
+	# Check if this attack was cancelled due to a move order
+	if clone.has_meta("cancel_next_attack"):
+		print("Cancelled scheduled attack for clone: ", clone.name, " due to move order")
+		return
 	
 	var clone_target = clone_targets.get(clone, null)
 	if not clone_target or not is_instance_valid(clone_target): return
@@ -1010,6 +1058,19 @@ func _on_navigation_finished(): pass
 func is_in_combat() -> bool: 
 	return current_enemy != null and is_instance_valid(current_enemy)
 
+# COMBAT STATE CHECKING
+func is_in_combat_state() -> bool:
+	"""Check if squad is actively engaged in combat operations"""
+	if current_enemy and is_instance_valid(current_enemy):
+		return true
+	
+	for clone in clone_targets.keys():
+		var target = clone_targets[clone]
+		if target and is_instance_valid(target):
+			return true
+	
+	return false
+
 # DEBUG AND HELPER METHODS
 func force_target_validation():
 	"""Public method to force target validation - useful for debugging"""
@@ -1070,3 +1131,18 @@ func debug_attack_timing():
 	print("Time until next attack: ", attack_interval - attack_timer)
 	print("Leader can attack: ", current_enemy != null and current_leader != null)
 	print("==========================")
+
+# COMBAT CANCELLATION DEBUG
+func debug_combat_state():
+	"""Debug method to check current combat state"""
+	print("=== COMBAT STATE DEBUG ===")
+	print("Is in combat: ", is_in_combat_state())
+	print("Current enemy: ", current_enemy.name if current_enemy else "none")
+	print("Attack timer: ", attack_timer)
+	print("Clone targets count: ", clone_targets.size())
+	print("===========================")
+
+func force_cancel_combat():
+	"""Debug method to manually force combat cancellation"""
+	print("Manually forcing combat cancellation for squad: ", squad_id)
+	_cancel_all_combat()

@@ -1,4 +1,4 @@
-[gd_scene load_steps=64 format=4 uid="uid://btfmenw7rsr23"]
+[gd_scene load_steps=65 format=4 uid="uid://btfmenw7rsr23"]
 
 [ext_resource type="Script" uid="uid://ba685cgyl4in3" path="res://core/scripts/Infantry/infantry_sqaud.gd" id="1_my61e"]
 [ext_resource type="Script" uid="uid://c1wddsm427l3n" path="res://core/scripts/CombatUnitData.gd" id="2_eca55"]
@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://bux7qscg5g5c0" path="res://data/assets/icons/unit_selction_icon.png" id="3_xq74o"]
 [ext_resource type="Script" uid="uid://dotaob5vq2ptd" path="res://core/scripts/Infantry/muzzle_flash.gd" id="4_xq74o"]
 [ext_resource type="Texture2D" uid="uid://dk0pxwxi60mpl" path="res://addons/MrMinimal'sVFX/addons/kenney-particles/textures/fire_01.png" id="5_dj76j"]
+[ext_resource type="Script" uid="uid://ckny44ueml1el" path="res://core/scripts/sfx_manager.gd" id="7_m5kmk"]
 [ext_resource type="PackedScene" uid="uid://dxso8u25lsmf4" path="res://scenes/UnitBar.tscn" id="7_v08oi"]
 [ext_resource type="Script" uid="uid://c80risx0kuxym" path="res://core/scripts/Infantry/animation_manager.gd" id="8_1fc82"]
 
@@ -13,7 +14,7 @@
 script = ExtResource("2_eca55")
 unit_icon = ExtResource("3_v08oi")
 unit_name = "Tirailleur Sqaud"
-health = 120
+health = 75
 move_speed = 8.0
 cost = 50
 weapon_type = "MAS-35"
@@ -21,7 +22,7 @@ abilities = Array[String]([])
 squad_size = 5
 vision_range = 40.0
 attack_range = 40.0
-attack_interval = 4.619
+attack_interval = 3.3
 formation_spacing = 3.5
 leader_delay = 0.0
 clone_initial_delay = 0.3
@@ -7158,7 +7159,7 @@ tracks/114/enabled = true
 tracks/114/path = NodePath("Muzzle_Flash")
 tracks/114/interp = 1
 tracks/114/loop_wrap = true
-tracks/114/keys = PackedFloat32Array(0, 1, -0.016364, 4.0932, 1.57046)
+tracks/114/keys = PackedFloat32Array(0, 1, -0.016364, 4.0932, 1.57046, 0.0001, 1, -0.016364, 4.0932, 1.57046)
 
 [sub_resource type="Animation" id="Animation_bxm18"]
 resource_name = "Idle_1"
@@ -11225,7 +11226,7 @@ transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -0.110
 script = ExtResource("4_xq74o")
 
 [node name="GPUParticles3D" type="GPUParticles3D" parent="Infantry/Muzzle_Flash"]
-transform = Transform3D(0.994247, -1.05968e-14, 0.107114, 1.06581e-14, 1, 0, -0.107114, 1.14164e-15, 0.994247, 0.266886, -1.16255, 0.0362575)
+transform = Transform3D(0.994247, -1.05968e-14, 0.107114, 1.06581e-14, 1, 0, -0.107114, 1.14164e-15, 0.994247, 0.266886, -1.16255, 0.267414)
 emitting = false
 amount = 3
 lifetime = 0.05
@@ -11709,7 +11710,7 @@ bones/66/rotation = Quaternion(2.75904e-08, -1.09256e-07, 1.16415e-08, 1)
 bones/66/scale = Vector3(1, 1, 1)
 
 [node name="model_4_001" type="BoneAttachment3D" parent="Infantry/Armature/Skeleton3D"]
-transform = Transform3D(25.1403, -1.49548, 9.89637, 3.68761, 26.2574, -5.4, -9.30462, 6.36569, 24.599, -22.168, 6.62802, -345.933)
+transform = Transform3D(25.1403, -1.49547, 9.89636, 3.68761, 26.2574, -5.4, -9.30462, 6.36569, 24.599, -22.168, 6.62803, -345.933)
 bone_name = "model_4.001"
 bone_idx = 7
 
@@ -11718,7 +11719,7 @@ mesh = SubResource("ArrayMesh_7it8x")
 skeleton = NodePath("")
 
 [node name="french_rifle" type="BoneAttachment3D" parent="Infantry/Armature/Skeleton3D"]
-transform = Transform3D(2.84541, -0.419636, -21.1949, 21.1983, -0.110999, 2.84809, -0.165867, -21.3848, 0.40113, -25.6954, 26.4945, -281.596)
+transform = Transform3D(2.84542, -0.419654, -21.1949, 21.1983, -0.111001, 2.84811, -0.165876, -21.3848, 0.401143, -25.6954, 26.4945, -281.596)
 bone_name = "french_rifle"
 bone_idx = 56
 
@@ -11768,6 +11769,12 @@ playback_default_blend_time = 0.4
 [node name="body" type="CollisionShape3D" parent="Infantry"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.85613, 0)
 shape = SubResource("CapsuleShape3D_1fc82")
+
+[node name="sfx_manager" type="Node3D" parent="Infantry"]
+script = ExtResource("7_m5kmk")
+
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="Infantry"]
+autoplay = true
 
 [node name="Vision" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.25981, 0)
