@@ -9997,7 +9997,7 @@ bones/66/rotation = Quaternion(2.75904e-08, -1.09256e-07, 1.16415e-08, 1)
 bones/66/scale = Vector3(1, 1, 1)
 
 [node name="model_5_001" type="BoneAttachment3D" parent="Infantry/Armature/Skeleton3D"]
-transform = Transform3D(28.781, -1.71204, 11.3295, 4.22163, 30.0599, -6.182, -10.6521, 7.28753, 28.1613, -25.2607, 8.12561, -352.511)
+transform = Transform3D(28.781, -1.71205, 11.3295, 4.22163, 30.0599, -6.182, -10.6521, 7.28753, 28.1614, -25.2607, 8.1256, -352.511)
 bone_name = "model_5.001"
 bone_idx = 7
 
@@ -10006,7 +10006,7 @@ mesh = SubResource("ArrayMesh_253c7")
 skeleton = NodePath("")
 
 [node name="Cube_017_7" type="BoneAttachment3D" parent="Infantry/Armature/Skeleton3D"]
-transform = Transform3D(0.223673, 4.3085, 0.0342755, 1.3555, -0.720751, -0.00325323, 0.0169819, 0.782276, -0.191775, -14.8294, 93.4492, -295.786)
+transform = Transform3D(0.223673, 4.3085, 0.0342757, 1.3555, -0.720749, -0.00325318, 0.0169825, 0.782279, -0.191775, -14.8295, 93.4492, -295.786)
 bone_name = "Cube.017_7"
 bone_idx = 56
 
@@ -10060,7 +10060,6 @@ shape = SubResource("CapsuleShape3D_6o0jq")
 script = ExtResource("7_wptnq")
 
 [node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="Infantry"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 autoplay = true
 
 [node name="Vision" type="Node3D" parent="."]

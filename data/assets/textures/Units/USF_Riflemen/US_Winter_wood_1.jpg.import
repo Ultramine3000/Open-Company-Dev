@@ -1,0 +1,38 @@
+[remap]
+
+importer="texture"
+type="CompressedTexture2D"
+uid="uid://dsfrkmd62me74"
+path.s3tc="res://.godot/imported/US_Winter_wood_1.jpg-4bf2df87836c90f0c6df30bb4b659435.s3tc.ctex"
+metadata={
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
+}
+generator_parameters={
+"md5": "483908223c84d11b13af1d3b4dad33be"
+}
+
+[deps]
+
+source_file="res://data/assets/textures/Units/USF_Riflemen/US_Winter_wood_1.jpg"
+dest_files=["res://.godot/imported/US_Winter_wood_1.jpg-4bf2df87836c90f0c6df30bb4b659435.s3tc.ctex"]
+
+[params]
+
+compress/mode=2
+compress/high_quality=false
+compress/lossy_quality=0.7
+compress/hdr_compression=1
+compress/normal_map=0
+compress/channel_pack=0
+mipmaps/generate=true
+mipmaps/limit=-1
+roughness/mode=0
+roughness/src_normal=""
+process/fix_alpha_border=true
+process/premult_alpha=false
+process/normal_map_invert_y=false
+process/hdr_as_srgb=false
+process/hdr_clamp_exposure=false
+process/size_limit=0
+detect_3d/compress_to=0

@@ -1,7 +1,6 @@
-[gd_scene load_steps=13 format=3 uid="uid://e15251a4dgtl"]
+[gd_scene load_steps=11 format=3 uid="uid://e15251a4dgtl"]
 
 [ext_resource type="PackedScene" uid="uid://dnw2cubtetdj" path="res://scenes/CameraRig.tscn" id="1_15ed5"]
-[ext_resource type="Shader" uid="uid://17ugqncw7ltl" path="res://data/assets/textures/JungleFloor.gdshader" id="1_tu0pt"]
 [ext_resource type="PackedScene" uid="uid://53ikbm0hxshl" path="res://scenes/SelectionManager.tscn" id="2_q8osp"]
 [ext_resource type="PackedScene" uid="uid://btfmenw7rsr23" path="res://scenes/Tirailleurs_Sqaud.tscn" id="4_h66ac"]
 [ext_resource type="PackedScene" uid="uid://dhk3o6ado6iux" path="res://scenes/Hohei_Buntai.tscn" id="5_tu0pt"]
@@ -16,27 +15,15 @@ sky_material = SubResource("ProceduralSkyMaterial_15ed5")
 [sub_resource type="Environment" id="Environment_e724j"]
 background_mode = 2
 sky = SubResource("Sky_q8osp")
-tonemap_mode = 2
+tonemap_mode = 4
 fog_mode = 1
 fog_density = 1.0
 fog_depth_begin = 20.0
 fog_depth_end = 75.0
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_tu0pt"]
-render_priority = 0
-shader = ExtResource("1_tu0pt")
-shader_parameter/time_scale = 1.0
-shader_parameter/moss_coverage = 0.6
-shader_parameter/leaf_scatter = 0.131
-shader_parameter/moisture_amount = 0.5
-shader_parameter/texture_scale = 0.5
-shader_parameter/normal_strength = 0.748
-shader_parameter/roughness_base = 0.8
-shader_parameter/metallic_base = 0.05
-shader_parameter/height_scale = 0.02
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.005
 
 [sub_resource type="QuadMesh" id="QuadMesh_maf4d"]
-material = SubResource("ShaderMaterial_tu0pt")
 size = Vector2(150, 150)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_tu0pt"]
@@ -54,8 +41,8 @@ agent_radius = 0.15
 environment = SubResource("Environment_e724j")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(-0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, 0.75, -0.433013, 0, 0, 0)
-light_energy = 0.5
+transform = Transform3D(-0.865797, -0.421406, 0.269839, 0.0199047, 0.50982, 0.860051, -0.5, 0.75, -0.433013, 0, 0, 0)
+light_energy = 1.538
 shadow_enabled = true
 
 [node name="TestGround" type="StaticBody3D" parent="."]
@@ -70,6 +57,7 @@ shape = SubResource("BoxShape3D_tu0pt")
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="TestGround"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.213623, 0.162197, -0.107445)
+visible = false
 navigation_mesh = SubResource("NavigationMesh_h66ac")
 
 [node name="NavPlane" type="CSGBox3D" parent="TestGround/NavigationRegion3D"]
