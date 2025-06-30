@@ -1,0 +1,79 @@
+[gd_scene load_steps=11 format=3 uid="uid://e15251a4dgtl"]
+
+[ext_resource type="PackedScene" uid="uid://dnw2cubtetdj" path="res://scenes/CameraRig.tscn" id="1_df7qc"]
+[ext_resource type="PackedScene" uid="uid://53ikbm0hxshl" path="res://scenes/SelectionManager.tscn" id="2_jqx0o"]
+[ext_resource type="PackedScene" uid="uid://dhk3o6ado6iux" path="res://scenes/Hohei_Buntai.tscn" id="3_aftrv"]
+[ext_resource type="PackedScene" uid="uid://d34v2t7rfmw86" path="res://scenes/Riflemen.tscn" id="4_xb6oa"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_15ed5"]
+sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+ground_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+
+[sub_resource type="Sky" id="Sky_q8osp"]
+sky_material = SubResource("ProceduralSkyMaterial_15ed5")
+
+[sub_resource type="Environment" id="Environment_e724j"]
+background_mode = 2
+sky = SubResource("Sky_q8osp")
+tonemap_mode = 4
+fog_mode = 1
+fog_density = 1.0
+fog_depth_begin = 20.0
+fog_depth_end = 75.0
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.005
+
+[sub_resource type="QuadMesh" id="QuadMesh_maf4d"]
+size = Vector2(150, 150)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_tu0pt"]
+size = Vector3(332, 338, 1)
+
+[sub_resource type="NavigationMesh" id="NavigationMesh_h66ac"]
+vertices = PackedVector3Array(-75.3258, 0.527497, -74.8744, -75.3258, 0.527497, 77.4256, 73.4242, 0.527497, 77.4256, 73.4242, 0.527497, -74.8744)
+polygons = [PackedInt32Array(3, 2, 0), PackedInt32Array(0, 2, 1)]
+cell_size = 0.05
+agent_radius = 0.15
+
+[node name="World" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_e724j")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.865797, -0.421406, 0.269839, 0.0199047, 0.50982, 0.860051, -0.5, 0.75, -0.433013, 0, 0, 0)
+light_energy = 1.538
+shadow_enabled = true
+
+[node name="TestGround" type="StaticBody3D" parent="."]
+
+[node name="Terrain" type="MeshInstance3D" parent="TestGround"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0.7024, 0)
+mesh = SubResource("QuadMesh_maf4d")
+
+[node name="GroundCollision" type="CollisionShape3D" parent="TestGround"]
+transform = Transform3D(0.445, 0, 0, 0, -1.94516e-08, 0.445, 0, -0.445, -1.94516e-08, 0.261422, -1.95831e-09, -0.0448036)
+shape = SubResource("BoxShape3D_tu0pt")
+
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="TestGround"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.213623, 0.162197, -0.107445)
+visible = false
+navigation_mesh = SubResource("NavigationMesh_h66ac")
+
+[node name="NavPlane" type="CSGBox3D" parent="TestGround/NavigationRegion3D"]
+transform = Transform3D(0.445, 0, 0, 0, -1.94516e-08, 0.445, 0, -0.445, -1.94516e-08, -0.946802, 7.45058e-08, 1.27934)
+visible = false
+size = Vector3(334.962, 342.938, 1)
+
+[node name="CameraRig" parent="." instance=ExtResource("1_df7qc")]
+transform = Transform3D(1, 0, 0, 0, 0.995147, -0.0983994, 0, 0.0983994, 0.995147, -24.2286, 5.10286, 17.1418)
+
+[node name="SelectionManager" parent="." instance=ExtResource("2_jqx0o")]
+
+[node name="CloneContainer" type="Node3D" parent="."]
+
+[node name="Hohei Buntai" parent="." instance=ExtResource("3_aftrv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -28.782, 0.725895, 7.0935)
+
+[node name="Riflemen" parent="." instance=ExtResource("4_xb6oa")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 0.72408, 20)

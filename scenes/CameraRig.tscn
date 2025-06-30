@@ -7,7 +7,7 @@ script = ExtResource("1_7xkah")
 camera = NodePath("Camera3D")
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.523302, 0.852147, 0, -0.852147, 0.523302, 0, 7.55208, 3.18607)
+transform = Transform3D(1, 0, 0, 0, 0.573576, 0.819152, 0, -0.819152, 0.573576, 0, 7.55208, 3.18607)
 
 [node name="Label" type="Label" parent="Camera3D"]
 offset_left = 5.0

@@ -14,7 +14,7 @@
 script = ExtResource("2_wptnq")
 unit_icon = ExtResource("3_6o0jq")
 unit_name = "Infantry"
-health = 50
+health = 85
 move_speed = 8.0
 cost = 50
 weapon_type = "Rifle"
@@ -9487,12 +9487,12 @@ _data = {
 &"RESET": SubResource("Animation_wptnq")
 }
 
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6o0jq"]
-radius = 0.616257
-height = 3.57231
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_wptnq"]
+radius = 1.04402
+height = 4.06616
 
 [node name="Hohei_Buntai" type="CharacterBody3D" groups=["axis", "infantry"]]
-transform = Transform3D(0.994596, 0, -0.103817, 0, 1, 0, 0.103817, 0, 0.994596, 0, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 collision_mask = 0
 script = ExtResource("1_6o0jq")
 stats = SubResource("Resource_v08oi")
@@ -10052,15 +10052,15 @@ libraries = {
 }
 playback_default_blend_time = 0.4
 
-[node name="body" type="CollisionShape3D" parent="Infantry"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.85613, 0)
-shape = SubResource("CapsuleShape3D_6o0jq")
-
 [node name="sfx_manager" type="Node3D" parent="Infantry"]
 script = ExtResource("7_wptnq")
 
 [node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="Infantry"]
 autoplay = true
+
+[node name="body" type="CollisionShape3D" parent="Infantry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.97435, 0)
+shape = SubResource("CapsuleShape3D_wptnq")
 
 [node name="Vision" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.25981, 0)
