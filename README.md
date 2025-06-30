@@ -5,7 +5,7 @@
 Whether you're a developer, modder, or just a fan of RTS combat — this project is made for exploration, learning, and expansion.
 
 > 📘 **Full Developer Documentation:**  
-> [📄 View the complete design doc on Google Docs](https://docs.google.com/document/d/1SwRlM_GhbNZIEyF8fDz9QOazDvM4ad_Nv64w7ouSOMM/edit?usp=sharing)
+> [📄 View the complete design doc on Google Docs WIP](https://docs.google.com/document/d/1SwRlM_GhbNZIEyF8fDz9QOazDvM4ad_Nv64w7ouSOMM/edit?usp=sharing)
 
 ---
 
@@ -52,17 +52,5 @@ Whether you're a developer, modder, or just a fan of RTS combat — this project
     - Camera controls  
     - Squad selection  
     - Movement & formation logic
-
----
-
-## 🗂️ Project Directory Overview
-
-```bash
-doctrine/
-├── core/              # Engine-agnostic logic and utility scripts
-├── data/              # Base definitions (units, factions, buildings, etc.)
-├── mods/              # Optional modding layer (same structure as /data)
-├── scenes/            # RTS camera, selection, unit scenes
-├── ui/                # UI assets: cursors, HUD icons, markers
-└── README.md          # You're here!
+    - Combat
 
