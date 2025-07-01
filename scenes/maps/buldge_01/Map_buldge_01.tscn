@@ -1,0 +1,141 @@
+[gd_scene load_steps=26 format=3 uid="uid://cxy6ei2roopte"]
+
+[ext_resource type="Texture2D" uid="uid://dgxs1cctqpc51" path="res://addons/MrMinimal'sVFX/addons/kenney-particles/textures/smoke_01.png" id="1_uibyp"]
+[ext_resource type="Script" uid="uid://c7wpuny3fwg7l" path="res://core/scripts/terrain_generator.gd" id="2_k5b77"]
+[ext_resource type="Shader" uid="uid://c20loj0kxt5ep" path="res://data/assets/textures/Maps/buldge_01/Snow_Forest.gdshader" id="3_06t6t"]
+[ext_resource type="PackedScene" uid="uid://c0dfh5h8aqm14" path="res://scenes/maps/buldge_01/map_items/tree_1.tscn" id="3_hb73e"]
+[ext_resource type="PackedScene" uid="uid://bvrgb7ljy4kkh" path="res://scenes/maps/buldge_01/map_items/tree_2.tscn" id="4_lpx40"]
+[ext_resource type="Texture2D" uid="uid://3k3gbb3legk1" path="res://data/assets/textures/Maps/buldge_01/dirt.jpg" id="4_vv2md"]
+[ext_resource type="PackedScene" uid="uid://dnw2cubtetdj" path="res://scenes/CameraRig.tscn" id="5_4kltd"]
+[ext_resource type="PackedScene" uid="uid://d1x721bwowkbo" path="res://scenes/maps/buldge_01/map_items/tree_3.tscn" id="5_k5b77"]
+[ext_resource type="Texture2D" uid="uid://b32e2cu60jxnc" path="res://data/assets/textures/Maps/buldge_01/snow.jpg" id="5_utf12"]
+[ext_resource type="PackedScene" uid="uid://53ikbm0hxshl" path="res://scenes/SelectionManager.tscn" id="6_06t6t"]
+[ext_resource type="PackedScene" uid="uid://csbg0ctmu1miq" path="res://scenes/maps/buldge_01/map_items/shrub_1.tscn" id="9_vv2md"]
+[ext_resource type="PackedScene" uid="uid://dksi0ddnedgci" path="res://scenes/maps/buldge_01/map_items/logs_1.tscn" id="10_utf12"]
+[ext_resource type="PackedScene" uid="uid://ctto83tjgxgtd" path="res://scenes/maps/buldge_01/map_items/logs_2.tscn" id="11_vy74g"]
+[ext_resource type="PackedScene" uid="uid://chjgl18g3h25a" path="res://scenes/maps/buldge_01/map_items/rock_1.tscn" id="12_c5syk"]
+[ext_resource type="PackedScene" uid="uid://d34v2t7rfmw86" path="res://scenes/Riflemen.tscn" id="13_yp080"]
+[ext_resource type="PackedScene" uid="uid://dhk3o6ado6iux" path="res://scenes/Hohei_Buntai.tscn" id="16_0w6ar"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_2w20c"]
+sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+ground_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+
+[sub_resource type="Sky" id="Sky_1gue2"]
+sky_material = SubResource("ProceduralSkyMaterial_2w20c")
+
+[sub_resource type="Environment" id="Environment_otuts"]
+background_mode = 2
+sky = SubResource("Sky_1gue2")
+tonemap_mode = 2
+fog_mode = 1
+fog_density = 1.0
+fog_depth_begin = 0.0
+fog_depth_end = 539.4
+volumetric_fog_density = 0.01
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_2w20c"]
+size = Vector3(1010.08, 1001.44, 7.88)
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_arqct"]
+emission_shape = 3
+emission_box_extents = Vector3(100, 1, 100)
+angle_min = 1.07288e-05
+angle_max = 360.0
+direction = Vector3(1, -1, 0)
+initial_velocity_min = 10.0
+initial_velocity_max = 20.0
+linear_accel_min = 0.999998
+linear_accel_max = 10.0
+scale_min = 0.5
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_n506n"]
+transparency = 1
+shading_mode = 0
+albedo_texture = ExtResource("1_uibyp")
+billboard_mode = 3
+billboard_keep_scale = true
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+particles_anim_loop = false
+
+[sub_resource type="QuadMesh" id="QuadMesh_e3fl2"]
+material = SubResource("StandardMaterial3D_n506n")
+size = Vector2(0.4, 0.4)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_vvhxu"]
+size = Vector2(20, 20)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_vy74g"]
+render_priority = 0
+shader = ExtResource("3_06t6t")
+shader_parameter/snow_albedo = ExtResource("5_utf12")
+shader_parameter/dirt_albedo = ExtResource("4_vv2md")
+shader_parameter/snow_amount = 1.0
+shader_parameter/snow_depth = 0.1
+shader_parameter/snow_roughness = 0.4
+shader_parameter/snow_tint = Vector4(0.95, 0.95, 1, 1)
+shader_parameter/snow_brightness = 1.8
+shader_parameter/dirt_tint = Vector4(0.4, 0.3, 0.2, 1)
+shader_parameter/dirt_roughness = 0.8
+shader_parameter/texture_scale = 10.0
+shader_parameter/detail_scale = 3.0
+shader_parameter/normal_strength = 1.0
+shader_parameter/displacement_strength = 0.02
+shader_parameter/snow_slope_factor = 1.5
+shader_parameter/metallic_value = 0.0
+shader_parameter/specular_value = 0.5
+shader_parameter/time_scale = 0.1
+
+[node name="Buldge" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_otuts")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -0.500003, 0.749999, -0.43301, 0, 0, 0)
+light_energy = 0.615
+shadow_enabled = true
+
+[node name="Ground" type="StaticBody3D" parent="."]
+transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 0, 0, 0)
+
+[node name="GroundCollision" type="CollisionShape3D" parent="Ground"]
+transform = Transform3D(0.445, 0, 0, 0, -1.94516e-08, 0.445, 0, -0.445, -1.94516e-08, 0, 0, 0)
+shape = SubResource("BoxShape3D_2w20c")
+
+[node name="Snow" type="GPUParticles3D" parent="Ground"]
+transform = Transform3D(2.18014, 0, 0, 0, 1.42857, 0, 0, 0, 2.3871, 0, 70.4124, 0)
+amount = 25000
+lifetime = 5.0
+visibility_aabb = AABB(-4, -342.261, -213.06, 406.073, 344.264, 423.366)
+process_material = SubResource("ParticleProcessMaterial_arqct")
+draw_pass_1 = SubResource("QuadMesh_e3fl2")
+
+[node name="MapGeneration" type="MeshInstance3D" parent="Ground"]
+transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, 0.707107, 0, 0, 0)
+mesh = SubResource("PlaneMesh_vvhxu")
+script = ExtResource("2_k5b77")
+terrain_size = 250.0
+max_height = 0.1
+use_custom_material = true
+custom_material = SubResource("ShaderMaterial_vy74g")
+scatter_scenes = Array[PackedScene]([ExtResource("3_hb73e"), ExtResource("4_lpx40"), ExtResource("5_k5b77"), ExtResource("9_vv2md"), ExtResource("10_utf12"), ExtResource("11_vy74g"), ExtResource("12_c5syk")])
+scatter_probabilities = Array[float]([0.9, 0.9, 0.9, 2.0, 0.25, 0.2, 0.18])
+scatter_count = 200
+scatter_scale_min = 0.85
+scatter_scale_max = 1.12
+nav_mesh_resolution = 4
+
+[node name="Riflemen" parent="Ground" instance=ExtResource("13_yp080")]
+transform = Transform3D(1.42857, 0, 0, 0, 1.42857, 0, 0, 0, 1.42857, -55.7143, 0.390743, 0)
+
+[node name="Hohei_Buntai" parent="Ground" instance=ExtResource("16_0w6ar")]
+transform = Transform3D(1.42857, 0, 0, 0, 1.42857, 0, 0, 0, 1.42857, 81.0598, 0.600331, 0.238552)
+
+[node name="SelectionManager" parent="." instance=ExtResource("6_06t6t")]
+
+[node name="CloneContainer" type="Node3D" parent="."]
+
+[node name="CameraRig" parent="." instance=ExtResource("5_4kltd")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24.2286, 5.10286, 17.1418)

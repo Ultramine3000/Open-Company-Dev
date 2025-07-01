@@ -2,14 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://f0i8khos8dnd"
+uid="uid://036pwiojvsd6"
 path.s3tc="res://.godot/imported/Buldge_Assets_Cap_Texture_Albedo.png-64408dac335fcc1f567552b47b46c4a1.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
-}
-generator_parameters={
-"md5": "33697c742f24f288ddfc8a446759d628"
 }
 
 [deps]

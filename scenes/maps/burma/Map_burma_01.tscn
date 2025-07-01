@@ -1,0 +1,108 @@
+[gd_scene load_steps=24 format=3 uid="uid://ok2i1s7ar0xl"]
+
+[ext_resource type="Script" uid="uid://c7wpuny3fwg7l" path="res://core/scripts/terrain_generator.gd" id="2_44ru5"]
+[ext_resource type="Shader" uid="uid://br5pijwxljtji" path="res://data/assets/textures/Maps/burma/Jungle_Forest.gdshader" id="2_6714u"]
+[ext_resource type="Texture2D" uid="uid://cpereex08ex4w" path="res://data/assets/textures/Maps/burma/jungle_floor.jpg" id="4_vb0gi"]
+[ext_resource type="Texture2D" uid="uid://3k3gbb3legk1" path="res://data/assets/textures/Maps/buldge_01/dirt.jpg" id="4_w0p4f"]
+[ext_resource type="PackedScene" uid="uid://c36qldmhxtvbr" path="res://scenes/maps/burma/map_items/jungle_branch_01.tscn" id="5_44ru5"]
+[ext_resource type="PackedScene" uid="uid://chs8gtvyj7wwy" path="res://scenes/maps/burma/map_items/jungle_bush_01.tscn" id="6_6714u"]
+[ext_resource type="PackedScene" uid="uid://h01nsqdp8y1" path="res://scenes/maps/burma/map_items/jungle_bush_02.tscn" id="7_w0p4f"]
+[ext_resource type="PackedScene" uid="uid://lacrmcld58qp" path="res://scenes/maps/burma/map_items/jungle_rock_01.tscn" id="8_vb0gi"]
+[ext_resource type="PackedScene" uid="uid://b8cioo1lf4py7" path="res://scenes/maps/burma/map_items/jungle_tree_01.tscn" id="9_wxlae"]
+[ext_resource type="PackedScene" uid="uid://bc4cpfixtvojj" path="res://scenes/maps/burma/map_items/jungle_tree_02.tscn" id="10_001wy"]
+[ext_resource type="PackedScene" uid="uid://br8e5m8w16gux" path="res://scenes/maps/burma/map_items/jungle_tree_03.tscn" id="11_oth6y"]
+[ext_resource type="PackedScene" uid="uid://dfvjrt8ji02ux" path="res://scenes/maps/burma/map_items/jungle_tree_04.tscn" id="12_ciwyy"]
+[ext_resource type="PackedScene" uid="uid://n36dbfl30c5d" path="res://scenes/maps/burma/map_items/jungle_tree_05.tscn" id="13_e0rsx"]
+[ext_resource type="PackedScene" uid="uid://d34v2t7rfmw86" path="res://scenes/Riflemen.tscn" id="13_wd42w"]
+[ext_resource type="PackedScene" uid="uid://dhk3o6ado6iux" path="res://scenes/Hohei_Buntai.tscn" id="14_i2kdy"]
+[ext_resource type="PackedScene" uid="uid://53ikbm0hxshl" path="res://scenes/SelectionManager.tscn" id="15_bq24k"]
+[ext_resource type="PackedScene" uid="uid://dnw2cubtetdj" path="res://scenes/CameraRig.tscn" id="16_jjj57"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_2w20c"]
+sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+ground_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+
+[sub_resource type="Sky" id="Sky_1gue2"]
+sky_material = SubResource("ProceduralSkyMaterial_2w20c")
+
+[sub_resource type="Environment" id="Environment_otuts"]
+background_mode = 2
+sky = SubResource("Sky_1gue2")
+tonemap_mode = 2
+fog_mode = 1
+fog_density = 1.0
+fog_depth_begin = 0.0
+fog_depth_end = 539.4
+volumetric_fog_density = 0.01
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_2w20c"]
+size = Vector3(1010.08, 1001.44, 7.88)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_vvhxu"]
+size = Vector2(20, 20)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_vy74g"]
+render_priority = 0
+shader = ExtResource("2_6714u")
+shader_parameter/grass_albedo = ExtResource("4_vb0gi")
+shader_parameter/dirt_albedo = ExtResource("4_w0p4f")
+shader_parameter/grass_amount = 0.7
+shader_parameter/grass_depth = 0.1
+shader_parameter/grass_roughness = 0.4
+shader_parameter/grass_tint = Vector4(0.6, 1.2, 0.5, 1)
+shader_parameter/grass_brightness = 1.8
+shader_parameter/dirt_tint = Vector4(0.4, 0.3, 0.2, 1)
+shader_parameter/dirt_roughness = 0.8
+shader_parameter/texture_scale = 10.0
+shader_parameter/detail_scale = 3.0
+shader_parameter/normal_strength = 1.0
+shader_parameter/displacement_strength = 0.02
+shader_parameter/grass_slope_factor = 1.5
+shader_parameter/metallic_value = 0.0
+shader_parameter/specular_value = 0.5
+shader_parameter/time_scale = 0.1
+
+[node name="Burma" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_otuts")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -0.500003, 0.749999, -0.43301, 0, 0, 0)
+light_energy = 0.615
+shadow_enabled = true
+
+[node name="Ground" type="StaticBody3D" parent="."]
+transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 0, 0, 0)
+
+[node name="GroundCollision" type="CollisionShape3D" parent="Ground"]
+transform = Transform3D(0.445, 0, 0, 0, -1.94516e-08, 0.445, 0, -0.445, -1.94516e-08, 0, 0, 0)
+shape = SubResource("BoxShape3D_2w20c")
+
+[node name="MapGeneration" type="MeshInstance3D" parent="Ground"]
+transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, 0.707107, 0, 0, 0)
+mesh = SubResource("PlaneMesh_vvhxu")
+script = ExtResource("2_44ru5")
+terrain_size = 250.0
+max_height = 0.1
+use_custom_material = true
+custom_material = SubResource("ShaderMaterial_vy74g")
+scatter_scenes = Array[PackedScene]([ExtResource("5_44ru5"), ExtResource("6_6714u"), ExtResource("7_w0p4f"), ExtResource("8_vb0gi"), ExtResource("9_wxlae"), ExtResource("10_001wy"), ExtResource("11_oth6y"), ExtResource("12_ciwyy"), ExtResource("13_e0rsx")])
+scatter_probabilities = Array[float]([0.2, 0.35, 0.39, 0.2, 0.66, 0.77, 0.77, 0.66, 0.77])
+scatter_count = 200
+scatter_scale_min = 0.85
+scatter_scale_max = 1.12
+nav_mesh_resolution = 4
+
+[node name="Riflemen" parent="Ground" instance=ExtResource("13_wd42w")]
+transform = Transform3D(1.42857, 0, 0, 0, 1.42857, 0, 0, 0, 1.42857, -55.7143, 0.390743, 0)
+
+[node name="Hohei_Buntai" parent="Ground" instance=ExtResource("14_i2kdy")]
+transform = Transform3D(1.42857, 0, 0, 0, 1.42857, 0, 0, 0, 1.42857, 81.0598, 0.600331, 0.238552)
+
+[node name="SelectionManager" parent="." instance=ExtResource("15_bq24k")]
+
+[node name="CloneContainer" type="Node3D" parent="."]
+
+[node name="CameraRig" parent="." instance=ExtResource("16_jjj57")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24.2286, 5.10286, 17.1418)

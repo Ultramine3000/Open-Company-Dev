@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ba685cgyl4in3" path="res://core/scripts/Infantry/infantry_sqaud.gd" id="1_6o0jq"]
 [ext_resource type="Script" uid="uid://c1wddsm427l3n" path="res://core/scripts/CombatUnitData.gd" id="2_wptnq"]
-[ext_resource type="Texture2D" uid="uid://ba2uxfh26g13a" path="res://data/assets/icons/Japanese_Infantry.png" id="3_6o0jq"]
+[ext_resource type="Texture2D" uid="uid://cxjulwc3p6yh6" path="res://data/assets/icons/rising_sun.png" id="3_wptnq"]
 [ext_resource type="Texture2D" uid="uid://bux7qscg5g5c0" path="res://data/assets/icons/unit_selction_icon.png" id="4_ti1jk"]
 [ext_resource type="Script" uid="uid://dotaob5vq2ptd" path="res://core/scripts/Infantry/muzzle_flash.gd" id="5_acds6"]
 [ext_resource type="Texture2D" uid="uid://dk0pxwxi60mpl" path="res://addons/MrMinimal'sVFX/addons/kenney-particles/textures/fire_01.png" id="6_ivtun"]
@@ -12,7 +12,7 @@
 
 [sub_resource type="Resource" id="Resource_v08oi"]
 script = ExtResource("2_wptnq")
-unit_icon = ExtResource("3_6o0jq")
+unit_icon = ExtResource("3_wptnq")
 unit_name = "Infantry"
 health = 85
 move_speed = 8.0
@@ -9492,7 +9492,6 @@ radius = 1.04402
 height = 4.06616
 
 [node name="Hohei_Buntai" type="CharacterBody3D" groups=["axis", "infantry"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 collision_mask = 0
 script = ExtResource("1_6o0jq")
 stats = SubResource("Resource_v08oi")

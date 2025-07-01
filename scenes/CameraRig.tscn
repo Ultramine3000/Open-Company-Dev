@@ -10,6 +10,7 @@ camera = NodePath("Camera3D")
 transform = Transform3D(1, 0, 0, 0, 0.573576, 0.819152, 0, -0.819152, 0.573576, 0, 7.55208, 3.18607)
 
 [node name="Label" type="Label" parent="Camera3D"]
+visible = false
 offset_left = 5.0
 offset_top = 3.0
 offset_right = 733.0
